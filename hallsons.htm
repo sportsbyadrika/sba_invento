@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kinetix Prime ERP | Intelligent Enterprise Cloud Suite</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .tree-line::before {
+      content: '';
+      position: absolute;
+      left: -14px;
+      top: 14px;
+      width: 12px;
+      height: 1px;
+      background: #cbd5e1;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- PUBLIC MARKETING SUITE (HOME, PRICING, CONTACT, LOGIN)                     -->
+  <!-- ========================================================================= -->
+  <div id="publicSuite" class="flex flex-col min-h-screen">
+    
+    <!-- Top Marketing Nav -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchPublicTab('home')">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-teal-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/20">
+            <i data-lucide="boxes" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800/80">SaaS v4.2</span>
+              <span class="text-xs text-slate-400">Formerly Hallsons</span>
+            </div>
+            <h1 class="text-lg font-extrabold tracking-tight text-white">Kinetix <span class="text-cyan-400">Prime</span></h1>
+          </div>
+        </div>
+
+        <nav class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-wider text-slate-300">
+          <button onclick="switchPublicTab('home')" id="navLinkHome" class="text-cyan-400 transition hover:text-white">Features &amp; Platform</button>
+          <button onclick="switchPublicTab('pricing')" id="navLinkPricing" class="transition hover:text-white">Pricing Plans</button>
+          <button onclick="switchPublicTab('contact')" id="navLinkContact" class="transition hover:text-white">Contact Us</button>
+        </nav>
+
+        <div class="flex items-center space-x-3">
+          <button onclick="showLoginModal()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition flex items-center">
+            <i data-lucide="log-in" class="w-3.5 h-3.5 mr-1.5 text-cyan-400"></i>Portal Sign In
+          </button>
+          <button onclick="enterErpApp()" class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 to-teal-400 hover:from-cyan-300 hover:to-teal-300 rounded-lg shadow-md transition flex items-center">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 mr-1.5"></i>Launch ERP Live Demo
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- TAB 1: MARKETING HOME & PRODUCT FEATURES -->
+    <main id="pubHomeView" class="flex-grow">
+      
+      <!-- Hero Banner -->
+      <section class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white py-20 px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px] opacity-15"></div>
+        <div class="max-w-6xl mx-auto text-center relative z-10 space-y-6">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950/80 border border-cyan-500/30 text-cyan-300">
+            Next-Generation Cloud ERP &amp; General Ledger Engine
+          </span>
+          <h2 class="text-4xl sm:text-6xl font-black tracking-tight leading-tight max-w-4xl mx-auto">
+            Unified Financials, Sales &amp; Supply Chain for <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">Agile Enterprises</span>
+          </h2>
+          <p class="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto">
+            Hallsons Prime is now Kinetix Prime. Manage Chart of Accounts, multi-currency Quotes, Automated Invoices, Goods Receive Notes, and Double-entry Bookkeeping in a single screen.
+          </p>
+          <div class="flex flex-wrap justify-center gap-4 pt-4">
+            <button onclick="enterErpApp()" class="px-8 py-3.5 bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-teal-400 transition flex items-center">
+              <span>Open ERP Workspace</span>
+              <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+            </button>
+            <button onclick="switchPublicTab('pricing')" class="px-7 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition">
+              Explore Pricing &amp; Modules
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Key Capabilities Grid -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <h3 class="text-2xl font-extrabold text-slate-900">Engineered for Every Operational Department</h3>
+          <p class="text-sm text-slate-500 mt-2">Replace fragmented spreadsheets with connected, organization-adaptive enterprise workflows.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs hover:border-cyan-400 transition">
+            <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-4">
+              <i data-lucide="trending-up" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-900">Sales &amp; Accounts Receivable</h4>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+              Full lifecycle from Quotes, Delivery Challans, Invoicing, Recurring Schedules to Receipts and Credit Notes with auto GST/Tax computation.
+            </p>
+          </div>
+
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs hover:border-teal-400 transition">
+            <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
+              <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-900">Purchases &amp; Supply Chain</h4>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+              Vendor procurement with Purchase Orders, Three-way Matching against Goods Receive Notes (GRN), Vendor Bills, and Debit Notes.
+            </p>
+          </div>
+
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs hover:border-indigo-400 transition">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4">
+              <i data-lucide="git-fork" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-900">Hierarchical Chart of Accounts</h4>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+              Infinite nested tree architecture for Assets, Liabilities, Equity, Revenue, and Expenses with audit-ready trial balance rollups.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- TAB 2: PRICING PAGE -->
+    <main id="pubPricingView" class="hidden flex-grow py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+      <div class="text-center max-w-3xl mx-auto mb-12">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-700 bg-cyan-50 px-3 py-1 rounded-full border border-cyan-200">Scalable SaaS Licensing</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3">Transparent Plans for Growing Operations</h2>
+        <p class="text-sm text-slate-500 mt-2">Deploy on multi-tenant cloud or dedicated single-tenant VPC. All plans include automated nightly backups.</p>
+        
+        <!-- Billing Toggle -->
+        <div class="mt-6 inline-flex items-center p-1 bg-slate-200 rounded-xl">
+          <button id="billMonthlyBtn" onclick="setBillingCycle('monthly')" class="px-4 py-1.5 text-xs font-bold rounded-lg bg-white shadow-xs text-slate-900">Monthly Billing</button>
+          <button id="billAnnualBtn" onclick="setBillingCycle('annual')" class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Annual (Save 20%)</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Starter Plan -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Starter</span>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">Founders Tier</h3>
+            <div class="mt-4 flex items-baseline">
+              <span class="text-4xl font-black text-slate-900 price-val" data-monthly="₹ 2,499" data-annual="₹ 1,999">₹ 2,499</span>
+              <span class="text-xs text-slate-500 ml-2">/ month</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">Perfect for startups and boutique agencies.</p>
+            <ul class="mt-6 space-y-3 text-xs text-slate-600">
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mr-2"></i>Up to 3 Team Users</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mr-2"></i>Sales, Quotes &amp; Invoices</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mr-2"></i>Standard Chart of Accounts</li>
+              <li class="flex items-center text-slate-400"><i data-lucide="minus" class="w-4 h-4 mr-2"></i>No Goods Receive Notes (GRN)</li>
+            </ul>
+          </div>
+          <button onclick="enterErpApp()" class="mt-8 w-full py-2.5 text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition">Select Starter</button>
+        </div>
+
+        <!-- Professional Plan -->
+        <div class="bg-gradient-to-b from-slate-900 to-cyan-950 text-white border-2 border-cyan-400 rounded-2xl p-7 shadow-xl relative flex flex-col justify-between">
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-400 text-slate-950 font-mono text-[10px] font-black uppercase tracking-widest px-3 py-0.5 rounded-full shadow">Most Popular</span>
+          <div>
+            <span class="text-xs font-bold text-cyan-300 uppercase tracking-wider">Growth Business</span>
+            <h3 class="text-2xl font-bold text-white mt-1">Prime Commercial</h3>
+            <div class="mt-4 flex items-baseline">
+              <span class="text-4xl font-black text-white price-val" data-monthly="₹ 6,999" data-annual="₹ 5,499">₹ 6,999</span>
+              <span class="text-xs text-cyan-200 ml-2">/ month</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-2">Comprehensive suite for wholesalers, trading &amp; distributors.</p>
+            <ul class="mt-6 space-y-3 text-xs text-slate-200">
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-cyan-400 mr-2"></i>Up to 15 Active Users</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-cyan-400 mr-2"></i>Full Sales &amp; Purchases Pipelines</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-cyan-400 mr-2"></i>GRN &amp; Delivery Challans</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-cyan-400 mr-2"></i>Custom Chart of Accounts Tree</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-cyan-400 mr-2"></i>Banking Reconciliations</li>
+            </ul>
+          </div>
+          <button onclick="enterErpApp()" class="mt-8 w-full py-2.5 text-xs font-extrabold uppercase tracking-wider bg-cyan-400 hover:bg-cyan-300 text-slate-950 rounded-xl transition shadow-lg shadow-cyan-400/20">Launch Prime Workspace</button>
+        </div>
+
+        <!-- Enterprise Plan -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-7 shadow-xs flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Multi-Entity</span>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1">Industrial Enterprise</h3>
+            <div class="mt-4 flex items-baseline">
+              <span class="text-4xl font-black text-slate-900 price-val" data-monthly="₹ 14,999" data-annual="₹ 11,999">₹ 14,999</span>
+              <span class="text-xs text-slate-500 ml-2">/ month</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">Customized for discrete manufacturing &amp; group firms.</p>
+            <ul class="mt-6 space-y-3 text-xs text-slate-600">
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mr-2"></i>Unlimited Organization Users</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mr-2"></i>Manufacturing &amp; Work Orders</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mr-2"></i>Integrated HR, Payroll &amp; POS</li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mr-2"></i>Dedicated Cloud Instance &amp; API</li>
+            </ul>
+          </div>
+          <button onclick="switchPublicTab('contact')" class="mt-8 w-full py-2.5 text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition">Contact Enterprise Sales</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 3: CONTACT US PAGE -->
+    <main id="pubContactView" class="hidden flex-grow py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <div class="lg:col-span-5 space-y-6">
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-700 bg-cyan-50 px-3 py-1 rounded-full border border-cyan-200">Direct Support &amp; Deployment</span>
+          <h2 class="text-3xl font-extrabold text-slate-900">Let's Discuss Your ERP Modernization</h2>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Our functional consultants and solution architects assist with chart-of-accounts migration, legacy database onboarding, and user onboarding.
+          </p>
+
+          <div class="space-y-4 pt-4 text-xs">
+            <div class="flex items-start space-x-3">
+              <div class="p-2.5 bg-cyan-50 text-cyan-700 rounded-lg"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+              <div>
+                <span class="font-bold text-slate-900 block">Global Headquarters</span>
+                <span class="text-slate-500">Cyberpark Sector 4, Trivandrum, Kerala 695014</span>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="p-2.5 bg-teal-50 text-teal-700 rounded-lg"><i data-lucide="phone-call" class="w-5 h-5"></i></div>
+              <div>
+                <span class="font-bold text-slate-900 block">Direct Enterprise Helpline</span>
+                <span class="text-slate-500">+91 471 298 4400 / +91 98470 12000</span>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="p-2.5 bg-indigo-50 text-indigo-700 rounded-lg"><i data-lucide="mail" class="w-5 h-5"></i></div>
+              <div>
+                <span class="font-bold text-slate-900 block">General &amp; Onboarding Enquiries</span>
+                <span class="text-slate-500">solutions@kinetixprime.com</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-7 shadow-xl">
+          <h3 class="text-lg font-bold text-slate-900 mb-1">Request an Architectural Walkthrough</h3>
+          <p class="text-xs text-slate-500 mb-6">Receive an institutional sandbox credential within 30 minutes.</p>
+
+          <form onsubmit="handleContactSubmit(event)" class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 uppercase mb-1">Official Name</label>
+                <input type="text" required placeholder="e.g., Rajesh Pillai" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 uppercase mb-1">Work Email</label>
+                <input type="email" required placeholder="name@company.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 uppercase mb-1">Company / Entity Name</label>
+                <input type="text" required placeholder="Hallsons Commercials Ltd" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 uppercase mb-1">Organization Category</label>
+                <select class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none bg-white">
+                  <option>Wholesale &amp; Distribution</option>
+                  <option>Discrete Manufacturing</option>
+                  <option>Professional Agency / Services</option>
+                  <option>Retail Chain</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 uppercase mb-1">Project Scope / Migration Requirements</label>
+              <textarea rows="3" placeholder="Tell us about your current systems, approximate user count, and integration requirements..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wider rounded-xl transition shadow flex items-center justify-center space-x-2">
+              <i data-lucide="send" class="w-4 h-4"></i>
+              <span>Submit Consultation Request</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Marketing Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-xs text-slate-500">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="shield-check" class="w-4 h-4 text-cyan-600"></i>
+          <span class="font-bold text-slate-800">Kinetix Prime ERP Platform</span>
+          <span>• 256-Bit Encrypted Multi-Tenant Cloud</span>
+        </div>
+        <span>&copy; 2026 Hallsons Global Technology Corp. All rights reserved.</span>
+      </div>
+    </footer>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- AUTH MODAL: USER & COMPANY SIGN IN                                        -->
+  <!-- ========================================================================= -->
+  <div id="loginModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="bg-gradient-to-r from-slate-900 to-cyan-950 p-6 text-white flex justify-between items-center">
+        <div>
+          <span class="text-[10px] font-mono uppercase tracking-widest text-cyan-400">Enterprise Access</span>
+          <h3 class="text-lg font-bold">Sign In to Kinetix ERP</h3>
+        </div>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="handleLogin(event)" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">Select Active Organization Profile</label>
+          <select id="loginOrgType" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-cyan-500 outline-none font-medium">
+            <option value="trading">Hallsons Trading &amp; Distribution (Wholesale)</option>
+            <option value="manufacturing">Hallsons Precision Manufacturing (Plant 1)</option>
+            <option value="services">Hallsons Advisory &amp; Digital Services</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">Coordinator / User Email ID</label>
+          <input type="email" id="loginEmail" required value="admin.finance@hallsons.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">Password</label>
+          <input type="password" required value="••••••••••••" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none">
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold uppercase tracking-wider rounded-lg transition shadow-md flex items-center justify-center">
+          <span>Authorize &amp; Launch Workspace</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 ml-1.5"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- AUTHENTICATED FULL-SCREEN ERP APPLICATION (DASHBOARD & MODULES)          -->
+  <!-- ========================================================================= -->
+  <div id="erpApp" class="hidden flex-grow flex flex-col min-h-screen w-full bg-slate-100">
+    
+    <!-- Top Universal App Bar -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 px-4 h-16 flex items-center justify-between">
+      
+      <!-- Left: Mobile Toggle & Brand & Org Indicator -->
+      <div class="flex items-center space-x-3">
+        <button onclick="toggleMobileSidebar()" class="lg:hidden p-2 text-slate-400 hover:text-white rounded-lg">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+
+        <div class="flex items-center space-x-2.5 cursor-pointer" onclick="openErpSubModule('Dashboard', 'Executive KPI Overview')">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-cyan-500 to-teal-400 flex items-center justify-center text-slate-950 font-black shadow">
+            <i data-lucide="boxes" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-black tracking-tight text-white">Kinetix <span class="text-cyan-400">Prime</span></span>
+              <span id="orgBadgeText" class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 hidden sm:inline-block">Wholesale Trading</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Org Switcher Dropdown in App Bar -->
+        <div class="hidden md:flex items-center ml-4 pl-4 border-l border-slate-800">
+          <select id="appOrgSwitcher" onchange="changeOrganization(this.value)" class="bg-slate-800 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 outline-none focus:ring-1 focus:ring-cyan-400">
+            <option value="trading">Hallsons Trading LLC</option>
+            <option value="manufacturing">Hallsons Manufacturing Ltd</option>
+            <option value="services">Hallsons Global Consulting</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Right: Search, Apps Menu Grid, Notifications & User/Company Profile Menu -->
+      <div class="flex items-center space-x-3">
+        
+        <!-- Live Quick Search -->
+        <div class="relative hidden md:block">
+          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400"></i>
+          <input type="text" placeholder="Search Invoices, Accounts, SKUs..." class="bg-slate-800/80 text-xs text-slate-200 pl-8 pr-3 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-cyan-400 w-56">
+        </div>
+
+        <!-- Apps Menu Trigger (Grid) -->
+        <div class="relative">
+          <button onclick="toggleDropdown('appsDropdown')" title="Installed Suite Applications" class="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition relative">
+            <i data-lucide="layout-grid" class="w-5 h-5"></i>
+          </button>
+          
+          <!-- Apps Dropdown Matrix -->
+          <div id="appsDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 text-slate-900 p-4 z-50">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 px-1">Kinetix Enterprise Suite</div>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+              
+              <button onclick="switchAppModule('Sales & Accounts')" class="p-2.5 rounded-xl hover:bg-cyan-50 transition flex flex-col items-center group">
+                <div class="p-2 bg-cyan-100 text-cyan-700 rounded-lg group-hover:scale-105 transition"><i data-lucide="receipt" class="w-5 h-5"></i></div>
+                <span class="text-[10px] font-bold mt-1.5 text-cyan-900">Sales &amp; Accts</span>
+              </button>
+
+              <button onclick="switchAppModule('POS Engine')" class="p-2.5 rounded-xl hover:bg-emerald-50 transition flex flex-col items-center group">
+                <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg group-hover:scale-105 transition"><i data-lucide="scan-barcode" class="w-5 h-5"></i></div>
+                <span class="text-[10px] font-bold mt-1.5">POS</span>
+              </button>
+
+              <button onclick="switchAppModule('CRM Suite')" class="p-2.5 rounded-xl hover:bg-amber-50 transition flex flex-col items-center group">
+                <div class="p-2 bg-amber-100 text-amber-700 rounded-lg group-hover:scale-105 transition"><i data-lucide="contact-2" class="w-5 h-5"></i></div>
+                <span class="text-[10px] font-bold mt-1.5">CRM</span>
+              </button>
+
+              <button onclick="switchAppModule('Manufacturing')" class="p-2.5 rounded-xl hover:bg-purple-50 transition flex flex-col items-center group">
+                <div class="p-2 bg-purple-100 text-purple-700 rounded-lg group-hover:scale-105 transition"><i data-lucide="factory" class="w-5 h-5"></i></div>
+                <span class="text-[10px] font-bold mt-1.5">Manufacturing</span>
+              </button>
+
+              <button onclick="switchAppModule('HR & Payroll')" class="p-2.5 rounded-xl hover:bg-rose-50 transition flex flex-col items-center group">
+                <div class="p-2 bg-rose-100 text-rose-700 rounded-lg group-hover:scale-105 transition"><i data-lucide="users" class="w-5 h-5"></i></div>
+                <span class="text-[10px] font-bold mt-1.5">HR &amp; Payroll</span>
+              </button>
+
+              <button onclick="switchAppModule('Enterprise Settings')" class="p-2.5 rounded-xl hover:bg-slate-100 transition flex flex-col items-center group">
+                <div class="p-2 bg-slate-100 text-slate-700 rounded-lg group-hover:scale-105 transition"><i data-lucide="settings" class="w-5 h-5"></i></div>
+                <span class="text-[10px] font-bold mt-1.5">Settings</span>
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- User & Company Profile Menu -->
+        <div class="relative">
+          <button onclick="toggleDropdown('profileDropdown')" class="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-800 transition">
+            <div class="w-8 h-8 rounded-lg bg-cyan-600 text-white font-bold flex items-center justify-center text-xs ring-1 ring-cyan-300">
+              HP
+            </div>
+            <div class="hidden lg:block text-left text-xs">
+              <span class="font-bold block text-slate-100 leading-tight">Manoj Pillai</span>
+              <span class="text-[10px] text-cyan-400 block">Financial Controller</span>
+            </div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+          </button>
+
+          <!-- Profile Submenu Dropdown -->
+          <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 text-slate-800 py-2 z-50 text-xs">
+            <div class="px-4 py-2 border-b border-slate-100">
+              <span class="font-bold block text-slate-900">Manoj Pillai</span>
+              <span class="text-[11px] text-slate-400">admin.finance@hallsons.com</span>
+            </div>
+            
+            <button onclick="openCompanyProfileModal()" class="w-full px-4 py-2 text-left hover:bg-cyan-50 flex items-center">
+              <i data-lucide="building-2" class="w-4 h-4 mr-2.5 text-cyan-700"></i>Company Profile
+            </button>
+            <button onclick="openUserProfileModal()" class="w-full px-4 py-2 text-left hover:bg-cyan-50 flex items-center">
+              <i data-lucide="user-cog" class="w-4 h-4 mr-2.5 text-teal-700"></i>User Profile &amp; Security
+            </button>
+            <button onclick="openErpSubModule('Accountant', 'Chart of Accounts')" class="w-full px-4 py-2 text-left hover:bg-cyan-50 flex items-center">
+              <i data-lucide="git-fork" class="w-4 h-4 mr-2.5 text-indigo-700"></i>Chart of Accounts
+            </button>
+            
+            <div class="border-t border-slate-100 my-1"></div>
+            <button onclick="exitErpApp()" class="w-full px-4 py-2 text-left text-rose-600 hover:bg-rose-50 flex items-center font-bold">
+              <i data-lucide="log-out" class="w-4 h-4 mr-2.5"></i>Sign Out of Session
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Full Stretch Workspace Body: Left Sidebar + Main Content Stage -->
+    <div class="flex-grow flex w-full overflow-hidden">
+      
+      <!-- ========================================================================= -->
+      <!-- LEFT WORKSPACE NAVIGATION & SUB-MENUS                                      -->
+      <!-- ========================================================================= -->
+      <aside id="erpSidebar" class="w-64 bg-slate-900 border-r border-slate-800 text-slate-300 flex-shrink-0 flex flex-col justify-between hidden lg:flex transition-all duration-200 z-30">
+        
+        <div class="overflow-y-auto py-4 px-3 space-y-1">
+          
+          <!-- 1. DASHBOARD -->
+          <div>
+            <button onclick="openErpSubModule('Dashboard', 'Executive KPI Overview')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition">
+              <span class="flex items-center"><i data-lucide="layout-dashboard" class="w-4 h-4 mr-2.5 text-cyan-400"></i>Dashboard</span>
+            </button>
+          </div>
+
+          <!-- 2. ITEMS -->
+          <div>
+            <button onclick="toggleSideGroup('itemsSubGroup')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">
+              <span class="flex items-center"><i data-lucide="package" class="w-4 h-4 mr-2.5 text-slate-400"></i>Items &amp; Inventory</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+            </button>
+            <div id="itemsSubGroup" class="hidden pl-8 pr-2 py-1 space-y-1 text-xs text-slate-400">
+              <button onclick="openErpSubModule('Items', 'Items Catalog')" class="w-full text-left py-1 hover:text-cyan-400">Items Catalog</button>
+              <button onclick="openErpSubModule('Items', 'Price Lists')" class="w-full text-left py-1 hover:text-cyan-400">Price Lists</button>
+              <button onclick="openErpSubModule('Items', 'Inventory Adjustments')" class="w-full text-left py-1 hover:text-cyan-400">Stock Adjustments</button>
+            </div>
+          </div>
+
+          <!-- 3. SALES (Exact Sub-Menus from prompt) -->
+          <div>
+            <button onclick="toggleSideGroup('salesSubGroup')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 transition">
+              <span class="flex items-center"><i data-lucide="trending-up" class="w-4 h-4 mr-2.5 text-cyan-400"></i>Sales</span>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-cyan-400"></i>
+            </button>
+            
+            <div id="salesSubGroup" class="pl-8 pr-2 py-1.5 space-y-1 text-xs text-slate-300">
+              <button onclick="openErpSubModule('Sales', 'Customers')" class="w-full text-left py-1 hover:text-cyan-300">Customers</button>
+              <button onclick="openErpSubModule('Sales', 'Quotes')" class="w-full text-left py-1 hover:text-cyan-300">Quotes</button>
+              <button onclick="openErpSubModule('Sales', 'Invoices')" class="w-full text-left py-1 hover:text-cyan-300 font-semibold text-cyan-400">Invoices</button>
+              <button onclick="openErpSubModule('Sales', 'Recurring Invoices')" class="w-full text-left py-1 hover:text-cyan-300">Recurring Invoices</button>
+              <button onclick="openErpSubModule('Sales', 'Delivery Challans')" class="w-full text-left py-1 hover:text-cyan-300">Delivery Challans</button>
+              <button onclick="openErpSubModule('Sales', 'Payments Received')" class="w-full text-left py-1 hover:text-cyan-300">Payments Received</button>
+              <button onclick="openErpSubModule('Sales', 'Credit Notes')" class="w-full text-left py-1 hover:text-cyan-300">Credit Notes</button>
+            </div>
+          </div>
+
+          <!-- 4. PURCHASES (Exact Sub-Menus from prompt) -->
+          <div>
+            <button onclick="toggleSideGroup('purchasesSubGroup')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">
+              <span class="flex items-center"><i data-lucide="shopping-bag" class="w-4 h-4 mr-2.5 text-slate-400"></i>Purchases</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+            </button>
+
+            <div id="purchasesSubGroup" class="hidden pl-8 pr-2 py-1.5 space-y-1 text-xs text-slate-400">
+              <button onclick="openErpSubModule('Purchases', 'Vendors')" class="w-full text-left py-1 hover:text-cyan-400">Vendors</button>
+              <button onclick="openErpSubModule('Purchases', 'Purchase Order')" class="w-full text-left py-1 hover:text-cyan-400">Purchase Order</button>
+              <button onclick="openErpSubModule('Purchases', 'Bills')" class="w-full text-left py-1 hover:text-cyan-400">Bills</button>
+              <button onclick="openErpSubModule('Purchases', 'Goods Receive Note')" class="w-full text-left py-1 hover:text-cyan-400">Goods Receive Note (GRN)</button>
+              <button onclick="openErpSubModule('Purchases', 'Payments')" class="w-full text-left py-1 hover:text-cyan-400">Payments</button>
+              <button onclick="openErpSubModule('Purchases', 'Debit Note')" class="w-full text-left py-1 hover:text-cyan-400">Debit Note</button>
+            </div>
+          </div>
+
+          <!-- 5. BANKING -->
+          <div>
+            <button onclick="toggleSideGroup('bankingSubGroup')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">
+              <span class="flex items-center"><i data-lucide="landmark" class="w-4 h-4 mr-2.5 text-slate-400"></i>Banking</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+            </button>
+            <div id="bankingSubGroup" class="hidden pl-8 pr-2 py-1 space-y-1 text-xs text-slate-400">
+              <button onclick="openErpSubModule('Banking', 'Bank Accounts')" class="w-full text-left py-1 hover:text-cyan-400">Bank Accounts</button>
+              <button onclick="openErpSubModule('Banking', 'Reconciliation')" class="w-full text-left py-1 hover:text-cyan-400">Reconciliation</button>
+              <button onclick="openErpSubModule('Banking', 'Transfers')" class="w-full text-left py-1 hover:text-cyan-400">Internal Fund Transfer</button>
+            </div>
+          </div>
+
+          <!-- 6. ACCOUNTANT (Chart of Accounts core focus) -->
+          <div>
+            <button onclick="toggleSideGroup('accountantSubGroup')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">
+              <span class="flex items-center"><i data-lucide="calculator" class="w-4 h-4 mr-2.5 text-slate-400"></i>Accountant</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+            </button>
+            <div id="accountantSubGroup" class="pl-8 pr-2 py-1 space-y-1 text-xs text-slate-400">
+              <button onclick="openErpSubModule('Accountant', 'Chart of Accounts')" class="w-full text-left py-1 font-bold text-cyan-400 flex items-center">
+                <i data-lucide="git-fork" class="w-3 h-3 mr-1.5"></i>Chart of Accounts
+              </button>
+              <button onclick="openErpSubModule('Accountant', 'Manual Journals')" class="w-full text-left py-1 hover:text-cyan-400">Manual Journals</button>
+              <button onclick="openErpSubModule('Accountant', 'Base Currency Adjustments')" class="w-full text-left py-1 hover:text-cyan-400">Currency Revaluations</button>
+            </div>
+          </div>
+
+          <!-- 7. REPORTS -->
+          <div>
+            <button onclick="toggleSideGroup('reportsSubGroup')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">
+              <span class="flex items-center"><i data-lucide="file-bar-chart" class="w-4 h-4 mr-2.5 text-slate-400"></i>Reports</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+            </button>
+            <div id="reportsSubGroup" class="hidden pl-8 pr-2 py-1 space-y-1 text-xs text-slate-400">
+              <button onclick="openErpSubModule('Reports', 'Trial Balance')" class="w-full text-left py-1 hover:text-cyan-400">Trial Balance</button>
+              <button onclick="openErpSubModule('Reports', 'Profit and Loss')" class="w-full text-left py-1 hover:text-cyan-400">Profit &amp; Loss</button>
+              <button onclick="openErpSubModule('Reports', 'Balance Sheet')" class="w-full text-left py-1 hover:text-cyan-400">Balance Sheet</button>
+              <button onclick="openErpSubModule('Reports', 'Aging Summary')" class="w-full text-left py-1 hover:text-cyan-400">AR / AP Aging</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sidebar Footer Status -->
+        <div class="p-3 border-t border-slate-800 text-[11px] text-slate-500">
+          <div class="flex items-center justify-between">
+            <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block mr-1.5"></span>API Connected</span>
+            <span class="font-mono text-cyan-400">FY 2026-27</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ========================================================================= -->
+      <!-- MAIN ERP WORKSPACE STAGE (STRETCHES FULL WIDTH & HEIGHT)                  -->
+      <!-- ========================================================================= -->
+      <main class="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 flex flex-col justify-between">
+        <div class="space-y-6 max-w-full">
+          
+          <!-- Top Breadcrumb & Action Header -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
+            <div>
+              <div class="flex items-center space-x-2 text-xs text-slate-400 font-medium">
+                <span id="currentAppBreadcrumb">Sales &amp; Accounts</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                <span id="currentSectionBreadcrumb" class="text-cyan-700 font-semibold">Accountant</span>
+              </div>
+              <h2 id="currentStageTitle" class="text-xl sm:text-2xl font-black text-slate-900 mt-1">Chart of Accounts</h2>
+            </div>
+
+            <div class="flex items-center space-x-3">
+              <button onclick="openNewAccountModal()" class="px-4 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow flex items-center">
+                <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i>New Account Node
+              </button>
+            </div>
+          </div>
+
+          <!-- ===================================================================== -->
+          <!-- CORE STAGE VIEW A: CHART OF ACCOUNTS TREE VIEW (PRIMARY HIGHLIGHT)    -->
+          <!-- ===================================================================== -->
+          <div id="coaViewContainer" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center">
+                  <i data-lucide="git-fork" class="w-4 h-4 mr-2 text-cyan-600"></i>General Ledger Tree Structure
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Hierarchical parent-child relationship with real-time balance rollup.</p>
+              </div>
+
+              <!-- Filter & Expand Controls -->
+              <div class="flex items-center space-x-2 text-xs">
+                <button onclick="expandAllTreeNodes()" class="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold">Expand All</button>
+                <button onclick="collapseAllTreeNodes()" class="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-semibold">Collapse All</button>
+              </div>
+            </div>
+
+            <!-- Dynamic Chart of Accounts Tree Hierarchy -->
+            <div class="space-y-4 text-xs select-none">
+              
+              <!-- 1. ASSETS -->
+              <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60">
+                <div onclick="toggleTreeNode('nodeAssets')" class="p-3 bg-white flex items-center justify-between cursor-pointer hover:bg-slate-50 border-b border-slate-100">
+                  <div class="flex items-center space-x-2 font-bold text-slate-800">
+                    <i data-lucide="chevron-down" id="icon-nodeAssets" class="w-4 h-4 text-cyan-600 transition-transform"></i>
+                    <span class="mono px-2 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200">1000</span>
+                    <span class="text-sm font-extrabold">Assets</span>
+                  </div>
+                  <span class="font-mono font-bold text-slate-900 text-sm">₹ 34,80,240.00 Dr</span>
+                </div>
+
+                <div id="nodeAssets" class="p-4 pl-8 space-y-3 relative border-l-2 border-cyan-200 ml-6 my-2">
+                  
+                  <!-- Current Assets (Sub-Parent) -->
+                  <div class="relative tree-line">
+                    <div onclick="toggleTreeNode('nodeCurrentAssets')" class="flex items-center justify-between cursor-pointer font-bold text-slate-700 py-1 hover:text-cyan-700">
+                      <div class="flex items-center space-x-2">
+                        <i data-lucide="chevron-down" id="icon-nodeCurrentAssets" class="w-3.5 h-3.5 text-slate-400"></i>
+                        <span class="mono text-[11px] text-slate-500">1100</span>
+                        <span>Current Assets</span>
+                      </div>
+                      <span class="font-mono text-slate-700">₹ 21,40,240.00 Dr</span>
+                    </div>
+
+                    <!-- Children of Current Assets -->
+                    <div id="nodeCurrentAssets" class="pl-6 space-y-2 mt-2 border-l border-slate-200 ml-3">
+                      <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                        <span class="flex items-center space-x-2"><span class="mono text-slate-400">1110</span><span>HDFC Operating Bank Account</span></span>
+                        <span class="font-mono font-semibold text-slate-800">₹ 14,20,500.00</span>
+                      </div>
+                      <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                        <span class="flex items-center space-x-2"><span class="mono text-slate-400">1120</span><span>Accounts Receivable (Debtors Control)</span></span>
+                        <span class="font-mono font-semibold text-slate-800">₹ 6,40,740.00</span>
+                      </div>
+                      <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                        <span class="flex items-center space-x-2"><span class="mono text-slate-400">1130</span><span>Petty Cash Register</span></span>
+                        <span class="font-mono font-semibold text-slate-800">₹ 79,000.00</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Fixed Assets (Sub-Parent) -->
+                  <div class="relative tree-line">
+                    <div onclick="toggleTreeNode('nodeFixedAssets')" class="flex items-center justify-between cursor-pointer font-bold text-slate-700 py-1 hover:text-cyan-700">
+                      <div class="flex items-center space-x-2">
+                        <i data-lucide="chevron-down" id="icon-nodeFixedAssets" class="w-3.5 h-3.5 text-slate-400"></i>
+                        <span class="mono text-[11px] text-slate-500">1200</span>
+                        <span>Non-Current &amp; Fixed Assets</span>
+                      </div>
+                      <span class="font-mono text-slate-700">₹ 13,40,000.00 Dr</span>
+                    </div>
+
+                    <div id="nodeFixedAssets" class="pl-6 space-y-2 mt-2 border-l border-slate-200 ml-3">
+                      <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                        <span class="flex items-center space-x-2"><span class="mono text-slate-400">1210</span><span>Office Hardware &amp; Servers</span></span>
+                        <span class="font-mono font-semibold text-slate-800">₹ 8,90,000.00</span>
+                      </div>
+                      <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                        <span class="flex items-center space-x-2"><span class="mono text-slate-400">1220</span><span>Accumulated Depreciation</span></span>
+                        <span class="font-mono font-semibold text-rose-600">-₹ 1,50,000.00 Cr</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- 2. LIABILITIES -->
+              <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60">
+                <div onclick="toggleTreeNode('nodeLiab')" class="p-3 bg-white flex items-center justify-between cursor-pointer hover:bg-slate-50 border-b border-slate-100">
+                  <div class="flex items-center space-x-2 font-bold text-slate-800">
+                    <i data-lucide="chevron-down" id="icon-nodeLiab" class="w-4 h-4 text-cyan-600 transition-transform"></i>
+                    <span class="mono px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">2000</span>
+                    <span class="text-sm font-extrabold">Liabilities</span>
+                  </div>
+                  <span class="font-mono font-bold text-slate-900 text-sm">₹ 12,30,500.00 Cr</span>
+                </div>
+
+                <div id="nodeLiab" class="p-4 pl-8 space-y-3 relative border-l-2 border-amber-300 ml-6 my-2">
+                  <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                    <span class="flex items-center space-x-2"><span class="mono text-slate-400">2100</span><span>Accounts Payable (Creditors Control)</span></span>
+                    <span class="font-mono font-semibold text-slate-800">₹ 8,45,500.00</span>
+                  </div>
+                  <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                    <span class="flex items-center space-x-2"><span class="mono text-slate-400">2200</span><span>GST &amp; Statutory Output Taxes Payable</span></span>
+                    <span class="font-mono font-semibold text-slate-800">₹ 3,85,000.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. EQUITY -->
+              <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60">
+                <div onclick="toggleTreeNode('nodeEquity')" class="p-3 bg-white flex items-center justify-between cursor-pointer hover:bg-slate-50 border-b border-slate-100">
+                  <div class="flex items-center space-x-2 font-bold text-slate-800">
+                    <i data-lucide="chevron-down" id="icon-nodeEquity" class="w-4 h-4 text-cyan-600 transition-transform"></i>
+                    <span class="mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">3000</span>
+                    <span class="text-sm font-extrabold">Equity &amp; Capital</span>
+                  </div>
+                  <span class="font-mono font-bold text-slate-900 text-sm">₹ 15,00,000.00 Cr</span>
+                </div>
+
+                <div id="nodeEquity" class="p-4 pl-8 space-y-3 relative border-l-2 border-emerald-300 ml-6 my-2">
+                  <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                    <span class="flex items-center space-x-2"><span class="mono text-slate-400">3100</span><span>Retained Earnings / General Reserves</span></span>
+                    <span class="font-mono font-semibold text-slate-800">₹ 10,00,000.00</span>
+                  </div>
+                  <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                    <span class="flex items-center space-x-2"><span class="mono text-slate-400">3200</span><span>Shareholder Equity</span></span>
+                    <span class="font-mono font-semibold text-slate-800">₹ 5,00,000.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. REVENUE -->
+              <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60">
+                <div onclick="toggleTreeNode('nodeRevenue')" class="p-3 bg-white flex items-center justify-between cursor-pointer hover:bg-slate-50 border-b border-slate-100">
+                  <div class="flex items-center space-x-2 font-bold text-slate-800">
+                    <i data-lucide="chevron-down" id="icon-nodeRevenue" class="w-4 h-4 text-cyan-600 transition-transform"></i>
+                    <span class="mono px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 border border-indigo-200">4000</span>
+                    <span class="text-sm font-extrabold">Operating Revenue &amp; Sales</span>
+                  </div>
+                  <span class="font-mono font-bold text-slate-900 text-sm">₹ 42,90,000.00 Cr</span>
+                </div>
+
+                <div id="nodeRevenue" class="p-4 pl-8 space-y-3 relative border-l-2 border-indigo-300 ml-6 my-2">
+                  <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                    <span class="flex items-center space-x-2"><span class="mono text-slate-400">4100</span><span>Product Wholesale Sales</span></span>
+                    <span class="font-mono font-semibold text-slate-800">₹ 35,50,000.00</span>
+                  </div>
+                  <div class="flex items-center justify-between py-1 text-slate-600 hover:bg-white rounded px-2">
+                    <span class="flex items-center space-x-2"><span class="mono text-slate-400">4200</span><span>Service Implementation &amp; AMC</span></span>
+                    <span class="font-mono font-semibold text-slate-800">₹ 7,40,000.00</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ===================================================================== -->
+          <!-- CORE STAGE VIEW B: GENERIC MODULE TABLE (INVOICES / PURCHASES / ETC) -->
+          <!-- ===================================================================== -->
+          <div id="genericTableView" class="hidden bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 id="tableModuleName" class="text-base font-bold text-slate-900">Invoices List</h3>
+                <p class="text-xs text-slate-500">Real-time database transaction logs and fiscal vouchers.</p>
+              </div>
+              <div class="flex items-center space-x-2 text-xs">
+                <button class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 flex items-center">
+                  <i data-lucide="filter" class="w-3.5 h-3.5 mr-1.5"></i>Filter
+                </button>
+                <button class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 flex items-center">
+                  <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i>Export CSV
+                </button>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div class="border border-slate-200 rounded-xl overflow-x-auto">
+              <table class="min-w-full divide-y divide-slate-200 text-xs">
+                <thead class="bg-slate-50 text-slate-600 uppercase font-semibold">
+                  <tr>
+                    <th class="py-2.5 px-3 text-left">Document #</th>
+                    <th class="py-2.5 px-3 text-left">Entity / Counterparty</th>
+                    <th class="py-2.5 px-3 text-left">Date</th>
+                    <th class="py-2.5 px-3 text-left">Status</th>
+                    <th class="py-2.5 px-3 text-right">Amount (₹)</th>
+                    <th class="py-2.5 px-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="dynamicTableRows" class="divide-y divide-slate-100 bg-white">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mt-8 text-center text-xs text-slate-400">
+          Kinetix Prime ERP • Operating as Multi-tenant Instance on AWS ap-south-1
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD CHART OF ACCOUNTS CHILD NODE                                  -->
+  <!-- ========================================================================= -->
+  <div id="newAccountModal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
+        <h3 class="text-sm font-bold flex items-center">
+          <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-cyan-400"></i>Create New Chart of Accounts Node
+        </h3>
+        <button onclick="closeNewAccountModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="handleCreateAccountNode(event)" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">Parent Account Classification <span class="text-red-500">*</span></label>
+          <select id="newAccParent" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+            <option value="nodeAssets">1000 - Assets (Current / Fixed)</option>
+            <option value="nodeLiab">2000 - Liabilities (Creditors / Taxes)</option>
+            <option value="nodeEquity">3000 - Equity &amp; Reserves</option>
+            <option value="nodeRevenue">4000 - Operating Revenue</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase mb-1">GL Code</label>
+            <input type="text" id="newAccCode" required placeholder="1140" class="w-full px-3 py-2 border border-slate-300 rounded-lg mono font-bold">
+          </div>
+          <div class="col-span-2">
+            <label class="block font-semibold text-slate-700 uppercase mb-1">Account Title</label>
+            <input type="text" id="newAccName" required placeholder="e.g., Short Term Marketable Securities" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">Opening Balance (₹)</label>
+          <input type="number" id="newAccBal" value="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg mono">
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeNewAccountModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold uppercase rounded-lg">Append Node</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: COMPANY PROFILE EDIT                                              -->
+  <!-- ========================================================================= -->
+  <div id="companyProfileModal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
+        <h3 class="text-sm font-bold flex items-center">
+          <i data-lucide="building-2" class="w-4 h-4 mr-2 text-cyan-400"></i>Company Organization Profile
+        </h3>
+        <button onclick="closeCompanyProfileModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase mb-1">Legal Entity Name</label>
+            <input type="text" value="Hallsons Commercials Private Limited" class="w-full px-3 py-2 border border-slate-300 rounded-lg font-bold">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase mb-1">GSTIN / Tax ID</label>
+            <input type="text" value="32AAACH1234F1Z8" class="w-full px-3 py-2 border border-slate-300 rounded-lg mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">Registered Address</label>
+          <input type="text" value="Hallsons Cyber Tower, Phase 2, Trivandrum - 695581" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase mb-1">Base Currency</label>
+            <input type="text" value="INR (₹)" readonly class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase mb-1">Fiscal Year Cycle</label>
+            <input type="text" value="April 1 – March 31" readonly class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg">
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2">
+        <button onclick="closeCompanyProfileModal()" class="px-4 py-1.5 border border-slate-300 rounded-lg text-slate-600 text-xs">Close</button>
+        <button onclick="alert('Company profile updated successfully.'); closeCompanyProfileModal();" class="px-4 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: USER PROFILE EDIT                                                 -->
+  <!-- ========================================================================= -->
+  <div id="userProfileModal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
+        <h3 class="text-sm font-bold flex items-center">
+          <i data-lucide="user-cog" class="w-4 h-4 mr-2 text-teal-400"></i>User Account &amp; Access Controls
+        </h3>
+        <button onclick="closeUserProfileModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">User Full Name</label>
+          <input type="text" value="Prof. Manoj Pillai" class="w-full px-3 py-2 border border-slate-300 rounded-lg font-semibold">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">Official Email Address</label>
+          <input type="email" value="admin.finance@hallsons.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase mb-1">Assigned RBAC Role</label>
+          <input type="text" value="Super Administrator (Full Rights)" readonly class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg font-mono text-cyan-800">
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2">
+        <button onclick="closeUserProfileModal()" class="px-4 py-1.5 border border-slate-300 rounded-lg text-slate-600 text-xs">Cancel</button>
+        <button onclick="alert('User profile modified.'); closeUserProfileModal();" class="px-4 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-bold">Update Profile</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- APPLICATION RUNTIME LOGIC & INTERACTIVE SCRIPTS                          -->
+  <!-- ========================================================================= -->
+  <script>
+    // Initialize icons
+    lucide.createIcons();
+
+    // 1. Marketing Navigation Tabs
+    function switchPublicTab(tab) {
+      document.getElementById('pubHomeView').classList.add('hidden');
+      document.getElementById('pubPricingView').classList.add('hidden');
+      document.getElementById('pubContactView').classList.add('hidden');
+
+      document.getElementById('navLinkHome').className = "transition hover:text-white";
+      document.getElementById('navLinkPricing').className = "transition hover:text-white";
+      document.getElementById('navLinkContact').className = "transition hover:text-white";
+
+      if (tab === 'home') {
+        document.getElementById('pubHomeView').classList.remove('hidden');
+        document.getElementById('navLinkHome').className = "text-cyan-400 font-bold transition hover:text-white";
+      } else if (tab === 'pricing') {
+        document.getElementById('pubPricingView').classList.remove('hidden');
+        document.getElementById('navLinkPricing').className = "text-cyan-400 font-bold transition hover:text-white";
+      } else if (tab === 'contact') {
+        document.getElementById('pubContactView').classList.remove('hidden');
+        document.getElementById('navLinkContact').className = "text-cyan-400 font-bold transition hover:text-white";
+      }
+      lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Pricing Billing cycle toggle
+    function setBillingCycle(type) {
+      const isAnnual = type === 'annual';
+      document.getElementById('billMonthlyBtn').className = isAnnual ? "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900" : "px-4 py-1.5 text-xs font-bold rounded-lg bg-white shadow-xs text-slate-900";
+      document.getElementById('billAnnualBtn').className = isAnnual ? "px-4 py-1.5 text-xs font-bold rounded-lg bg-white shadow-xs text-slate-900" : "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900";
+
+      document.querySelectorAll('.price-val').forEach(el => {
+        el.textContent = isAnnual ? el.getAttribute('data-annual') : el.getAttribute('data-monthly');
+      });
+    }
+
+    // Modal Triggers
+    function showLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+    function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+    function openCompanyProfileModal() { closeDropdowns(); document.getElementById('companyProfileModal').classList.remove('hidden'); }
+    function closeCompanyProfileModal() { document.getElementById('companyProfileModal').classList.add('hidden'); }
+    function openUserProfileModal() { closeDropdowns(); document.getElementById('userProfileModal').classList.remove('hidden'); }
+    function closeUserProfileModal() { document.getElementById('userProfileModal').classList.add('hidden'); }
+    function openNewAccountModal() { document.getElementById('newAccountModal').classList.remove('hidden'); }
+    function closeNewAccountModal() { document.getElementById('newAccountModal').classList.add('hidden'); }
+
+    // Dropdown helpers
+    function toggleDropdown(id) {
+      const el = document.getElementById(id);
+      const isHidden = el.classList.contains('hidden');
+      closeDropdowns();
+      if (isHidden) el.classList.remove('hidden');
+    }
+    function closeDropdowns() {
+      document.getElementById('appsDropdown').classList.add('hidden');
+      document.getElementById('profileDropdown').classList.add('hidden');
+    }
+    window.addEventListener('click', (e) => {
+      if (!e.target.closest('#appsDropdown') && !e.target.closest('[title="Installed Suite Applications"]') &&
+          !e.target.closest('#profileDropdown') && !e.target.closest('header .relative')) {
+        closeDropdowns();
+      }
+    });
+
+    // Sidebar group toggle
+    function toggleSideGroup(id) {
+      const g = document.getElementById(id);
+      g.classList.toggle('hidden');
+    }
+
+    // Mobile sidebar
+    function toggleMobileSidebar() {
+      const sb = document.getElementById('erpSidebar');
+      sb.classList.toggle('hidden');
+    }
+
+    // Tree Node Expander / Collapser
+    function toggleTreeNode(nodeId) {
+      const n = document.getElementById(nodeId);
+      const icon = document.getElementById('icon-' + nodeId);
+      if (n.classList.contains('hidden')) {
+        n.classList.remove('hidden');
+        if (icon) icon.style.transform = 'rotate(0deg)';
+      } else {
+        n.classList.add('hidden');
+        if (icon) icon.style.transform = 'rotate(-90deg)';
+      }
+    }
+    function expandAllTreeNodes() {
+      ['nodeAssets', 'nodeCurrentAssets', 'nodeFixedAssets', 'nodeLiab', 'nodeEquity', 'nodeRevenue'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('hidden');
+        const icon = document.getElementById('icon-' + id);
+        if (icon) icon.style.transform = 'rotate(0deg)';
+      });
+    }
+    function collapseAllTreeNodes() {
+      ['nodeCurrentAssets', 'nodeFixedAssets'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+        const icon = document.getElementById('icon-' + id);
+        if (icon) icon.style.transform = 'rotate(-90deg)';
+      });
+    }
+
+    // 2. Enterprise Login Handlers
+    function handleLogin(e) {
+      e.preventDefault();
+      closeLoginModal();
+      enterErpApp();
+    }
+
+    function enterErpApp() {
+      document.getElementById('publicSuite').classList.add('hidden');
+      document.getElementById('erpApp').classList.remove('hidden');
+      window.scrollTo(0,0);
+      lucide.createIcons();
+    }
+
+    function exitErpApp() {
+      document.getElementById('erpApp').classList.add('hidden');
+      document.getElementById('publicSuite').classList.remove('hidden');
+      switchPublicTab('home');
+    }
+
+    // Dynamic Organization Switcher
+    function changeOrganization(type) {
+      const badge = document.getElementById('orgBadgeText');
+      if (type === 'manufacturing') {
+        badge.textContent = "Discrete Manufacturing";
+        badge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800";
+      } else if (type === 'services') {
+        badge.textContent = "Professional Agency";
+        badge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800";
+      } else {
+        badge.textContent = "Wholesale Trading";
+        badge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800";
+      }
+    }
+
+    // 3. Navigation to sub-modules & table populator
+    const sampleTableData = {
+      "Invoices": [
+        { code: "INV-2026-081", party: "Reliance Retail Logistics", date: "18 Oct 2026", status: "Sent / Unpaid", amount: "₹ 1,84,000.00", tag: "bg-amber-100 text-amber-800" },
+        { code: "INV-2026-080", party: "Apex Electronics Hub", date: "16 Oct 2026", status: "Paid via NEFT", amount: "₹ 78,500.00", tag: "bg-emerald-100 text-emerald-800" },
+        { code: "INV-2026-079", party: "Horizon Automations", date: "14 Oct 2026", status: "Overdue", amount: "₹ 2,34,900.00", tag: "bg-rose-100 text-rose-800" }
+      ],
+      "Quotes": [
+        { code: "QT-2026-019", party: "L&T Defense Procurement", date: "17 Oct 2026", status: "Draft Approved", amount: "₹ 8,90,000.00", tag: "bg-cyan-100 text-cyan-800" },
+        { code: "QT-2026-018", party: "Trivandrum Aerospace Tech", date: "15 Oct 2026", status: "Negotiation", amount: "₹ 4,10,000.00", tag: "bg-indigo-100 text-indigo-800" }
+      ],
+      "Delivery Challans": [
+        { code: "DC-9012", party: "Nexus Infra Projects", date: "18 Oct 2026", status: "In Transit", amount: "₹ 3,40,000.00", tag: "bg-teal-100 text-teal-800" }
+      ],
+      "Bills": [
+        { code: "BILL-541", party: "Schneider Electrical Supplies", date: "17 Oct 2026", status: "Awaiting Verification", amount: "₹ 1,12,000.00", tag: "bg-amber-100 text-amber-800" }
+      ],
+      "Goods Receive Note": [
+        { code: "GRN-2026-033", party: "Tata Steel Tubes Yard", date: "18 Oct 2026", status: "Inspected & Verified", amount: "₹ 6,40,000.00", tag: "bg-emerald-100 text-emerald-800" }
+      ]
+    };
+
+    function openErpSubModule(mainMenu, subMenu) {
+      document.getElementById('currentSectionBreadcrumb').textContent = mainMenu;
+      document.getElementById('currentStageTitle').textContent = subMenu;
+
+      const coaContainer = document.getElementById('coaViewContainer');
+      const tableContainer = document.getElementById('genericTableView');
+
+      if (subMenu === 'Chart of Accounts') {
+        coaContainer.classList.remove('hidden');
+        tableContainer.classList.add('hidden');
+      } else {
+        coaContainer.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+        document.getElementById('tableModuleName').textContent = subMenu + " Ledger";
+        
+        // Render rows
+        const rowsContainer = document.getElementById('dynamicTableRows');
+        rowsContainer.innerHTML = "";
+        const data = sampleTableData[subMenu] || sampleTableData["Invoices"];
+
+        data.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50";
+          tr.innerHTML = `
+            <td class="py-3 px-3 font-mono font-bold text-cyan-800">${item.code}</td>
+            <td class="py-3 px-3 font-semibold text-slate-900">${item.party}</td>
+            <td class="py-3 px-3 text-slate-500">${item.date}</td>
+            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.tag}">${item.status}</span></td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-slate-900">${item.amount}</td>
+            <td class="py-3 px-3 text-center"><button class="text-cyan-600 hover:text-cyan-800 font-bold">View</button></td>
+          `;
+          rowsContainer.appendChild(tr);
+        });
+      }
+      lucide.createIcons();
+    }
+
+    // App Switcher function
+    function switchAppModule(appName) {
+      closeDropdowns();
+      document.getElementById('currentAppBreadcrumb').textContent = appName;
+      alert(`Switched active workspace context to: ${appName}`);
+    }
+
+    // Create Account Node in tree
+    function handleCreateAccountNode(e) {
+      e.preventDefault();
+      const parentId = document.getElementById('newAccParent').value;
+      const code = document.getElementById('newAccCode').value;
+      const name = document.getElementById('newAccName').value;
+      const bal = parseFloat(document.getElementById('newAccBal').value) || 0;
+
+      const parentEl = document.getElementById(parentId);
+      const newRow = document.createElement('div');
+      newRow.className = "flex items-center justify-between py-1 text-slate-700 bg-cyan-50/60 rounded px-2 border-l-2 border-cyan-500";
+      newRow.innerHTML = `
+        <span class="flex items-center space-x-2"><span class="mono font-bold text-cyan-800">${code}</span><span>${name}</span></span>
+        <span class="font-mono font-bold text-slate-900">₹ ${bal.toLocaleString('en-IN')}.00</span>
+      `;
+      parentEl.appendChild(newRow);
+
+      closeNewAccountModal();
+      e.target.reset();
+      alert(`Account node [${code} - ${name}] appended to Chart of Accounts!`);
+    }
+
+    function handleContactSubmit(e) {
+      e.preventDefault();
+      alert("Consultation enquiry received! Our enterprise solution engineer will reach out today.");
+      e.target.reset();
+    }
+  </script>
+</body>
+</html>
