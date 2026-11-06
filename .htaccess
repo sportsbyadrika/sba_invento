@@ -1,0 +1,7 @@
+# Shared hosting fallback: when the document root cannot point to /public,
+# route everything into /public and block access to source folders.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(app|config|database|bin|storage|views|resources|scripts|docs|node_modules|vendor)(/|$) - [F,L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

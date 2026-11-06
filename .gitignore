@@ -1,0 +1,10 @@
+/config/config.php
+/node_modules/
+/vendor/
+/storage/logs/*
+/storage/mail/*
+/storage/cache/*
+!/storage/**/.gitkeep
+.DS_Store
+.idea/
+.vscode/
