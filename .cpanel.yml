@@ -1,0 +1,30 @@
+---
+# cPanel Git Version Control deployment
+# Repository : /home/olympicd/repositories/sba_invento
+# Destination: /home/olympicd/federaerp.com  (document root of federaerp.com)
+#
+# Server-only files are never overwritten or deleted by a deploy:
+#   config/config.php  - database / mail settings (create it once on the server)
+#   storage/           - logs, mail, cache
+deployment:
+  tasks:
+    - export REPOPATH=/home/olympicd/repositories/sba_invento/
+    - export DEPLOYPATH=/home/olympicd/federaerp.com/
+    - /bin/mkdir -p $DEPLOYPATH
+    - >-
+      /usr/bin/rsync -a --delete
+      --exclude='.git/'
+      --exclude='.gitignore'
+      --exclude='.cpanel.yml'
+      --exclude='node_modules/'
+      --exclude='resources/'
+      --exclude='scripts/'
+      --exclude='docs/'
+      --exclude='package.json'
+      --exclude='package-lock.json'
+      --exclude='hallsons.htm'
+      --exclude='config/config.php'
+      --exclude='storage/'
+      $REPOPATH $DEPLOYPATH
+    - /bin/mkdir -p ${DEPLOYPATH}storage/logs ${DEPLOYPATH}storage/mail ${DEPLOYPATH}storage/cache
+    - /bin/chmod -R 755 ${DEPLOYPATH}storage
