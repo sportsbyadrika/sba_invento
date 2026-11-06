@@ -1,0 +1,16 @@
+{
+  "name": "sba-invento",
+  "private": true,
+  "description": "SBA Invento - SaaS accounting & inventory (PHP / MySQL / Tailwind CSS)",
+  "scripts": {
+    "build": "npm run build:css && npm run icons",
+    "build:css": "tailwindcss -i resources/css/app.css -o public/assets/css/app.css --minify",
+    "watch": "tailwindcss -i resources/css/app.css -o public/assets/css/app.css --watch",
+    "icons": "node scripts/copy-icons.mjs"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.4",
+    "tailwindcss": "^4.3.4",
+    "lucide-static": "^1.69.0"
+  }
+}
