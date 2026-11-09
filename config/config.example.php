@@ -15,6 +15,8 @@ return [
         // Web installer (/install) for hosting without a terminal: set any long random text,
         // open https://your-domain/install, then set it back to '' after installing.
         'install_key' => '',
+        // 'auto' detects whether the .htaccess rewrite rules work; false forces /index.php/... URLs
+        'pretty_urls' => 'auto',
     ],
     'db' => [
         'host'     => '127.0.0.1',

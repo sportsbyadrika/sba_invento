@@ -28,3 +28,4 @@ deployment:
       $REPOPATH $DEPLOYPATH
     - /bin/mkdir -p ${DEPLOYPATH}storage/logs ${DEPLOYPATH}storage/mail ${DEPLOYPATH}storage/cache
     - /bin/chmod -R 755 ${DEPLOYPATH}storage
+    - /bin/cp -f ${REPOPATH}storage/.htaccess ${DEPLOYPATH}storage/.htaccess

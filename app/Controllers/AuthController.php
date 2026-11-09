@@ -51,7 +51,7 @@ final class AuthController
         if (!str_starts_with($intended, '/') || str_starts_with($intended, '//')) {
             $intended = '/dashboard';
         }
-        $base = base_path_url();
+        $base = app_prefix();
         if ($base !== '' && str_starts_with($intended, $base)) {
             $intended = substr($intended, strlen($base)) ?: '/dashboard';
         }

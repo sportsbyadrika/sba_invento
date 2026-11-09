@@ -57,7 +57,7 @@ $goto[] = ['label' => 'New Journal', 'group' => 'Create', 'url' => url('/account
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
-  <meta name="base-url" content="<?= e(base_path_url()) ?>">
+  <meta name="base-url" content="<?= e(app_prefix()) ?>">
   <meta name="robots" content="noindex">
   <title><?= e(($title ?? '') !== '' ? $title . ' · ' : '') ?><?= e(config('app.name')) ?></title>
   <link rel="icon" href="<?= e(asset('img/favicon.svg')) ?>" type="image/svg+xml">

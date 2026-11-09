@@ -30,6 +30,10 @@ final class App
             if ($base !== '' && str_starts_with($path, $base)) {
                 $path = substr($path, strlen($base)) ?: '/';
             }
+            // Fallback when rewrites are not active: /index.php/install -> /install
+            if (preg_match('#^/index\.php(/.*)?$#', $path, $m)) {
+                $path = ($m[1] ?? '') ?: '/';
+            }
             // Never expose .php in URLs: /login.php -> /login
             if (preg_match('#^(.+)\.php$#', $path, $m) && $m[1] !== '/index') {
                 redirect($m[1]);
