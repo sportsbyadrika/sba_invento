@@ -11,6 +11,9 @@ final class DashboardController
 {
     public function home(): never
     {
+        if (!is_file(BASE_PATH . '/storage/installed.lock') && !\App\Services\Installer::hasUsers()) {
+            redirect('/install'); // fresh server: start the web installer
+        }
         redirect(Auth::instance()->check() ? '/dashboard' : '/login');
     }
 
