@@ -12,6 +12,9 @@ return [
         'base_path'   => '',                 // e.g. '/invento' when installed in a sub-folder; '' = auto
         'timezone'    => 'UTC',              // storage timezone - keep UTC
         'force_https' => false,              // true in production
+        // Web installer (/install) for hosting without a terminal: set any long random text,
+        // open https://your-domain/install, then set it back to '' after installing.
+        'install_key' => '',
     ],
     'db' => [
         'host'     => '127.0.0.1',

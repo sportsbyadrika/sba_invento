@@ -73,6 +73,9 @@ final class App
         $r->get('/reset-password/{token:[a-f0-9]+}', [AuthController::class, 'showReset']);
         $r->post('/reset-password/{token:[a-f0-9]+}', [AuthController::class, 'reset']);
 
+        $r->get('/install', [\App\Controllers\InstallController::class, 'show']);
+        $r->post('/install', [\App\Controllers\InstallController::class, 'run']);
+
         $r->get('/dashboard', [DashboardController::class, 'index'], $auth);
         $r->post('/switch-company', [ProfileController::class, 'switchCompany'], $auth);
         $r->get('/profile', [ProfileController::class, 'index'], $auth);
