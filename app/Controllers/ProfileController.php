@@ -98,7 +98,7 @@ final class ProfileController
         }
         // Return to the same module root (ids from the previous company are not valid any more)
         $back = parse_url((string) ($_SERVER['HTTP_REFERER'] ?? ''), PHP_URL_PATH) ?: '/dashboard';
-        $back = preg_replace('#/(\d+)(/edit)?$#', '', substr($back, strlen(base_path_url())) ?: '/dashboard');
+        $back = preg_replace('#/(\d+)(/edit)?$#', '', substr($back, strlen(app_prefix())) ?: '/dashboard');
         redirect(str_contains((string) $back, '/new') ? '/accountant/journals' : ($back ?: '/dashboard'));
     }
 }

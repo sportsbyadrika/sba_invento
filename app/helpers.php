@@ -31,10 +31,35 @@ function base_path_url(): string
     return $base;
 }
 
-/** Build an application URL (never with .php) */
+/**
+ * Prefix for application URLs. Normally the same as base_path_url(). When the server does not
+ * apply the .htaccess rewrite rules, the app is reached as /index.php/... and every generated
+ * link keeps that prefix, so the whole application still works (just with uglier URLs).
+ */
+function app_prefix(): string
+{
+    static $prefix = null;
+    if ($prefix === null) {
+        $prefix = base_path_url();
+        if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'cli-server') {
+            $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+            $front = base_path_url() . '/index.php';
+            $mode = config('app.pretty_urls', 'auto'); // 'auto' | true | false
+            // public/.htaccess sets SBA_REWRITE, so its presence proves the rewrite rules are active
+            $rewrite = isset($_SERVER['SBA_REWRITE']) || isset($_SERVER['REDIRECT_SBA_REWRITE'])
+                || stripos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'nginx') !== false;
+            if ($path === $front || str_starts_with($path, $front . '/') || $mode === false || ($mode === 'auto' && !$rewrite)) {
+                $prefix = $front;
+            }
+        }
+    }
+    return $prefix;
+}
+
+/** Build an application URL (never with .php, unless the server cannot rewrite) */
 function url(string $path = '/', array $query = []): string
 {
-    $u = base_path_url() . '/' . ltrim($path, '/');
+    $u = app_prefix() . '/' . ltrim($path, '/');
     if ($query) {
         $u .= '?' . http_build_query($query);
     }
@@ -45,7 +70,7 @@ function asset(string $path): string
 {
     $file = BASE_PATH . '/public/assets/' . ltrim($path, '/');
     $v = is_file($file) ? substr(md5((string) filemtime($file)), 0, 8) : '1';
-    return url('assets/' . ltrim($path, '/')) . '?v=' . $v;
+    return base_path_url() . '/assets/' . ltrim($path, '/') . '?v=' . $v; // real file, never via index.php
 }
 
 /** Inline Lucide SVG icon (self hosted - no CDN, no JS needed) */

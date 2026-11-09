@@ -2,6 +2,9 @@
 Options -Indexes -MultiViews
 DirectoryIndex index.php
 
+# Tells the app that these rewrite rules are active (it then builds clean URLs without /index.php)
+SetEnv SBA_REWRITE 1
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
@@ -15,7 +18,7 @@ DirectoryIndex index.php
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    RewriteRule ^ index.php [QSA,L]
+    RewriteRule ^ index.php [QSA,L,E=SBA_REWRITE:1]
 </IfModule>
 
 <IfModule mod_headers.c>
