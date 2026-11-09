@@ -28,6 +28,15 @@ mb_internal_encoding('UTF-8');
 
 $debug = (bool) config('app.debug', false);
 error_reporting(E_ALL);
+// Show errors on screen only in debug mode, and never deprecation notices: printed output
+// before headers breaks redirects and the session cookie. Everything still goes to the log.
 ini_set('display_errors', $debug ? '1' : '0');
+set_error_handler(static function (int $no, string $msg, string $file, int $line): bool {
+    if ($no & (E_DEPRECATED | E_USER_DEPRECATED)) {
+        error_log("PHP Deprecated: $msg in $file:$line");
+        return true; // handled - not displayed
+    }
+    return false; // default PHP handling for everything else
+});
 ini_set('log_errors', '1');
 ini_set('error_log', BASE_PATH . '/storage/logs/php-error.log');

@@ -13,8 +13,10 @@ final class Session
         $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || config('app.force_https');
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
-        ini_set('session.sid_length', '48');
-        ini_set('session.sid_bits_per_character', '6');
+        if (PHP_VERSION_ID < 80400) { // deprecated in PHP 8.4 (its defaults are already strong)
+            ini_set('session.sid_length', '48');
+            ini_set('session.sid_bits_per_character', '6');
+        }
         session_name((string) config('security.session_name', 'sba_sid'));
         session_set_cookie_params([
             'lifetime' => 0,
