@@ -43,6 +43,17 @@ The compiled CSS (`public/assets/css/app.css`) and icons (`app/icons`) are commi
 
 ## 2. Deploying
 
+### Shared hosting without a terminal (cPanel)
+1. Deploy with cPanel Git Version Control (`.cpanel.yml` copies the code to `/home/olympicd/federaerp.com`).
+2. Create a MySQL database and user in **cPanel → MySQL Databases**, and give the user *All Privileges* on the database.
+3. In File Manager, copy `config/config.example.php` to `config/config.php`. Fill in the `db` values, `app.url`, and a long random `app.install_key`.
+4. Open `https://your-domain/install`, type the install key, and create the super admin. Tick *demo data* only for a test site. The installer creates every table and then locks itself (`storage/installed.lock`).
+5. Set `install_key` back to `''` in `config/config.php`.
+
+The root `.htaccess` routes everything into `/public`, blocks the source folders, and leaves `/.well-known/` open for AutoSSL. If cPanel's *MultiPHP Manager* adds a PHP handler block to `.htaccess`, copy that block into the repository's `.htaccess`, because each deploy overwrites the file.
+
+### Other servers
+
 **Apache:** point the document root at `/public`. `public/.htaccess` handles the clean URLs. If your shared host can't change the document root, the root `.htaccess` sends everything into `/public` and blocks the source folders.
 
 **Nginx:**
