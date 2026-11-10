@@ -20,6 +20,16 @@ final class SystemController
             $checks[$group][] = compact('name', 'value', 'status', 'hint');
         };
 
+        // ---- Deployment
+        $dep = @parse_ini_file(BASE_PATH . '/storage/deployed.txt') ?: [];
+        $add('Deployment', 'Deployed version', $dep ? (($dep['commit'] ?? '?') . ' · ' . ($dep['branch'] ?? '?') . ' · ' . ($dep['time'] ?? '?')) : 'unknown (deployed without bin/deploy.sh)', $dep ? 'ok' : 'warn',
+            'Deploy with cPanel Git Version Control so bin/deploy.sh records the version.');
+        $ht = (string) @file_get_contents(BASE_PATH . '/public/.htaccess');
+        $add('Deployment', 'URL rewriting', isset($_SERVER['SBA_REWRITE']) || isset($_SERVER['REDIRECT_SBA_REWRITE']) ? 'active (clean URLs)' : 'not active - using /index.php/... URLs',
+            isset($_SERVER['SBA_REWRITE']) || isset($_SERVER['REDIRECT_SBA_REWRITE']) ? 'ok' : 'warn', 'public/.htaccess is missing or ignored by the web server.');
+        $add('Deployment', 'cPanel PHP handler in public/.htaccess', str_contains($ht, 'cPanel-generated handler') ? 'present' : 'none (server default PHP is used)',
+            str_contains($ht, 'cPanel-generated handler') ? 'ok' : 'warn', 'Re-select the PHP version in cPanel → MultiPHP Manager to write it again.');
+
         // ---- PHP
         $opcache = function_exists('opcache_get_status') ? @opcache_get_status(false) : false;
         $add('PHP', 'Version / SAPI', PHP_VERSION . ' / ' . PHP_SAPI, PHP_VERSION_ID >= 80200 ? 'ok' : 'bad');

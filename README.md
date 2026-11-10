@@ -50,7 +50,9 @@ The compiled CSS (`public/assets/css/app.css`) and icons (`app/icons`) are commi
 4. Open `https://your-domain/install`, type the install key, and create the super admin. Tick *demo data* only for a test site. The installer creates every table and then locks itself (`storage/installed.lock`).
 5. Set `install_key` back to `''` in `config/config.php`.
 
-The root `.htaccess` routes everything into `/public`, blocks the source folders, and leaves `/.well-known/` open for AutoSSL. If cPanel's *MultiPHP Manager* adds a PHP handler block to `.htaccess`, copy that block into the repository's `.htaccess`, because each deploy overwrites the file.
+Deploys run `bin/deploy.sh`. It copies the code but keeps everything the server owns: `config/config.php`, `storage/`, `.well-known/` (SSL), `php.ini` / `.user.ini`, `error_log`, and the cPanel *MultiPHP* handler block inside `.htaccess`. The deployed commit is shown on **Platform → System Health**.
+
+Point the domain's document root at `/public`. If you can't, the root `.htaccess` routes everything into `/public`, blocks the source folders and leaves `/.well-known/` open for AutoSSL.
 
 ### Other servers
 

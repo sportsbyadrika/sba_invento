@@ -1,31 +1,11 @@
 ---
 # cPanel Git Version Control deployment
 # Repository : /home/olympicd/repositories/sba_invento
-# Destination: /home/olympicd/federaerp.com  (document root of federaerp.com)
+# Destination: /home/olympicd/federaerp.com  (domain document root: .../federaerp.com/public)
 #
-# Server-only files are never overwritten or deleted by a deploy:
-#   config/config.php  - database / mail settings (create it once on the server)
-#   storage/           - logs, mail, cache
+# bin/deploy.sh copies the code but keeps everything the server owns:
+# config/config.php, storage/, .well-known/ (SSL), php.ini / .user.ini, error_log
+# and the cPanel "MultiPHP" handler block inside .htaccess.
 deployment:
   tasks:
-    - export REPOPATH=/home/olympicd/repositories/sba_invento/
-    - export DEPLOYPATH=/home/olympicd/federaerp.com/
-    - /bin/mkdir -p $DEPLOYPATH
-    - >-
-      /usr/bin/rsync -a --delete
-      --exclude='.git/'
-      --exclude='.gitignore'
-      --exclude='.cpanel.yml'
-      --exclude='node_modules/'
-      --exclude='resources/'
-      --exclude='scripts/'
-      --exclude='docs/'
-      --exclude='package.json'
-      --exclude='package-lock.json'
-      --exclude='hallsons.htm'
-      --exclude='config/config.php'
-      --exclude='storage/'
-      $REPOPATH $DEPLOYPATH
-    - /bin/mkdir -p ${DEPLOYPATH}storage/logs ${DEPLOYPATH}storage/mail ${DEPLOYPATH}storage/cache
-    - /bin/chmod -R 755 ${DEPLOYPATH}storage
-    - /bin/cp -f ${REPOPATH}storage/.htaccess ${DEPLOYPATH}storage/.htaccess
+    - /bin/bash /home/olympicd/repositories/sba_invento/bin/deploy.sh /home/olympicd/repositories/sba_invento /home/olympicd/federaerp.com
