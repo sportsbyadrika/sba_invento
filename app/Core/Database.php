@@ -10,10 +10,15 @@ use PDOStatement;
 final class Database
 {
     private static ?PDO $pdo = null;
+    /** Performance counters (sent as a Server-Timing header) */
+    public static float $connectMs = 0.0;
+    public static float $queryMs = 0.0;
+    public static int $queries = 0;
 
     public static function pdo(): PDO
     {
         if (self::$pdo === null) {
+            $t0 = microtime(true);
             $c = config('db');
             $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=%s', $c['host'], $c['port'] ?? 3306, $c['database'], $c['charset'] ?? 'utf8mb4');
             self::$pdo = new PDO($dsn, $c['username'], $c['password'], [
@@ -23,14 +28,19 @@ final class Database
                 PDO::ATTR_STRINGIFY_FETCHES  => false,
             ]);
             self::$pdo->exec("SET time_zone = '+00:00', sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION'");
+            self::$connectMs = (microtime(true) - $t0) * 1000;
         }
         return self::$pdo;
     }
 
     public static function query(string $sql, array $params = []): PDOStatement
     {
-        $stmt = self::pdo()->prepare($sql);
+        $pdo = self::pdo();
+        $t0 = microtime(true);
+        $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
+        self::$queryMs += (microtime(true) - $t0) * 1000;
+        self::$queries++;
         return $stmt;
     }
 

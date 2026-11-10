@@ -26,6 +26,53 @@ final class AccountController
         ]);
     }
 
+    /** Compact group hierarchy shown beside the list (HTML fragment). */
+    public function nav(): string
+    {
+        $auth = Auth::instance();
+        if (!$auth->can('accountant', 'view')) {
+            throw new HttpException(403);
+        }
+        $rows = Database::all(
+            'SELECT id, parent_id, code, name, account_type, is_group, is_active FROM accounts WHERE company_id = ? ORDER BY code',
+            [$auth->companyId()]
+        );
+        $map = [];
+        foreach ($rows as $r) {
+            $map[(int) $r['id']] = $r + ['kids' => [], 'groups' => [], 'ledgers' => 0];
+        }
+        foreach ($map as $id => $r) {
+            if ($r['parent_id'] && isset($map[(int) $r['parent_id']])) {
+                $map[(int) $r['parent_id']]['kids'][] = $id;
+                if ($r['is_group']) {
+                    $map[(int) $r['parent_id']]['groups'][] = $id;
+                }
+            }
+        }
+        $count = static function (int $id) use (&$count, &$map): int {
+            $n = 0;
+            foreach ($map[$id]['kids'] as $k) {
+                $n += $map[$k]['is_group'] ? $count($k) : 1;
+            }
+            return $map[$id]['ledgers'] = $n;
+        };
+        $order = [];
+        $walk = static function (int $id, int $depth) use (&$walk, &$map, &$order): void {
+            $map[$id]['depth'] = $depth;
+            $order[] = $id;
+            foreach ($map[$id]['groups'] as $g) {
+                $walk($g, $depth + 1);
+            }
+        };
+        foreach ($map as $id => $r) {
+            if ($r['is_group'] && (!$r['parent_id'] || !isset($map[(int) $r['parent_id']]))) {
+                $count($id);
+                $walk($id, 0);
+            }
+        }
+        return View::partial('accountant/coa-nav', ['map' => $map, 'order' => $order, 'total' => count($rows)]);
+    }
+
     /** Account picker (ledgers only) - used by journal entry and report filters. */
     public function search(): never
     {

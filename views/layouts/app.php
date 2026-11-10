@@ -25,6 +25,7 @@ $platformMenu = [
     ['Companies', '/admin/companies', 'building-2'],
     ['All Users', '/admin/users', 'users'],
     ['Platform Login Log', '/admin/login-logs', 'shield-check'],
+    ['System Health', '/admin/system', 'activity'],
 ];
 // Quick "Go to" list (Ctrl+K / Alt+G) - only screens the user may open
 $goto = [];
@@ -83,11 +84,11 @@ $goto[] = ['label' => 'New Journal', 'group' => 'Create', 'url' => url('/account
     <nav class="hidden min-w-0 flex-1 items-center gap-0.5 lg:flex" aria-label="Main">
       <?php foreach ($menu as $i => $g): if (!can($g['module'])) { continue; } $isActive = $activeModule === $g['module']; ?>
         <?php if (empty($g['children'])): ?>
-          <a href="<?= e(url($g['url'])) ?>" class="nav-link <?= $isActive ? 'is-active' : '' ?>"><?= icon($g['icon'], 'size-4 opacity-70') ?><?= e($g['label']) ?></a>
+          <a href="<?= e(url($g['url'])) ?>" class="nav-link <?= $isActive ? 'is-active' : '' ?>"><?= icon($g['icon'], 'hidden size-4 opacity-70 2xl:block') ?><?= e($g['label']) ?></a>
         <?php else: ?>
           <div class="relative" data-dropdown>
             <button type="button" class="nav-link <?= $isActive ? 'is-active' : '' ?>" data-dropdown-trigger aria-expanded="false" aria-haspopup="true">
-              <?= icon($g['icon'], 'size-4 opacity-70') ?><?= e($g['label']) ?><?= icon('chevron-down', 'size-3.5 opacity-50') ?>
+              <?= icon($g['icon'], 'hidden size-4 opacity-70 2xl:block') ?><?= e($g['label']) ?><?= icon('chevron-down', 'hidden size-3.5 opacity-50 xl:block') ?>
             </button>
             <div class="dropdown-panel left-0 hidden w-72" data-dropdown-panel role="menu">
               <div class="px-2.5 pt-1.5 pb-1 section-title"><?= e($g['label']) ?></div>
@@ -112,7 +113,7 @@ $goto[] = ['label' => 'New Journal', 'group' => 'Create', 'url' => url('/account
 
     <div class="ml-auto flex items-center gap-1">
       <button type="button" class="btn btn-ghost hidden text-slate-500 md:inline-flex" data-goto-open title="Go to screen (Ctrl+K / Alt+G)">
-        <?= icon('search', 'size-4') ?><span class="text-xs">Go to…</span><span class="kbd">Ctrl K</span>
+        <?= icon('search', 'size-4') ?><span class="hidden text-xs 2xl:inline">Go to…</span><span class="kbd hidden 2xl:inline-flex">Ctrl K</span>
       </button>
 
       <?php if ($company && $auth->isAdmin()): ?>
@@ -143,7 +144,7 @@ $goto[] = ['label' => 'New Journal', 'group' => 'Create', 'url' => url('/account
       <div class="relative" data-dropdown>
         <button type="button" class="flex items-center gap-2 rounded-lg py-1 pr-1.5 pl-1 hover:bg-slate-100" data-dropdown-trigger aria-label="Profile menu">
           <span class="flex size-8 items-center justify-center rounded-lg bg-slate-900 text-xs font-bold text-white"><?= e($initials) ?></span>
-          <span class="hidden max-w-44 text-left leading-tight md:block">
+          <span class="hidden max-w-44 text-left leading-tight xl:block">
             <span class="block truncate text-[13px] font-semibold text-slate-900"><?= e($user['name'] ?? '') ?></span>
             <span class="block truncate text-[11px] text-slate-500"><?= e($company['name'] ?? 'No company selected') ?></span>
           </span>

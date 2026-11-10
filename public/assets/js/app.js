@@ -310,8 +310,10 @@
         });
       }
       if (saved.dense) this.table.classList.add('is-dense');
+      this.navCollapsed = new Set(store.get('nav:collapsed:' + this.key, []));
       this.bind();
       this.load();
+      if (this.d.nav) { if (store.get('nav:hidden:' + this.key, false)) this.toggleNav(false); else this.loadNav(); }
     }
 
     params(extra = {}) {
@@ -331,13 +333,19 @@
       store.set('list:' + this.key, { per_page: this.state.per_page, sort: this.state.sort, dir: this.state.dir, dense: this.table.classList.contains('is-dense') });
     }
 
-    async load() {
+    async load(force = false) {
       if (this.ctrl) this.ctrl.abort();
       this.ctrl = new AbortController();
+      // The overview cards depend only on search + filters: skip them on paging / sorting.
+      const params = this.params();
+      const statsKey = [...params].filter(([k]) => !['page', 'per_page', 'sort', 'dir'].includes(k)).map((x) => x.join('=')).join('&');
+      const needStats = force || statsKey !== this._statsKey;
+      params.set('stats', needStats ? '1' : '0');
       this.root.classList.add('is-loading');
       this.tbody.classList.add('opacity-60');
       try {
-        const data = await http(this.d.endpoint + '?' + this.params().toString(), { signal: this.ctrl.signal });
+        const data = await http(this.d.endpoint + '?' + params.toString(), { signal: this.ctrl.signal });
+        if (needStats) this._statsKey = statsKey;
         this.render(data);
         this.syncUrl();
       } catch (err) {
@@ -372,6 +380,7 @@
       $('[data-summary]', this.root).textContent = data.total ? `Showing ${data.from.toLocaleString()}–${data.to.toLocaleString()} of ${data.total.toLocaleString()}` : 'No records';
       this.renderPager(data);
       if (data.stats) this.renderStats(data.stats);
+      if (this.d.nav) this.syncNav();
       this.renderSortIcons();
       this.renderActiveFilters();
       if (this.selected >= data.rows.length) this.selected = data.rows.length - 1;
@@ -456,13 +465,114 @@
       const r = this.rows[i];
       if (!r || (!r.url && !r.view)) return;
       if (r.url) { location.href = r.url; return; }
-      Drawer.open(`${this.d.form}/${r.id}`, { width: this.d.drawerWidth, onSaved: () => this.load() });
+      Drawer.open(`${this.d.form}/${r.id}`, { width: this.d.drawerWidth, onSaved: () => this.reloadAll() });
     }
 
     newRecord() {
       if (this.d.newUrl) { location.href = this.d.newUrl; return; }
       if (!$('[data-new]', this.root)) return;
-      Drawer.open(this.d.form + (this.d.newQuery || ''), { width: this.d.drawerWidth, onSaved: () => this.load() });
+      Drawer.open(this.d.form + (this.d.newQuery || ''), { width: this.d.drawerWidth, onSaved: () => this.reloadAll() });
+    }
+
+    /** Data changed (save / delete / action): reload rows, overview cards and the hierarchy panel */
+    reloadAll() { this.load(true); if (this.d.nav) this.loadNav(); }
+
+    // ---------- hierarchy panel: click a group to list everything under it
+    async loadNav() {
+      const panel = $('[data-nav-panel]', this.root);
+      if (!panel) return;
+      try {
+        $('[data-nav-body]', panel).innerHTML = await http(this.d.nav, { html: true });
+        this.bindNavRows(panel);
+        this.syncNav();
+      } catch (err) { $('[data-nav-body]', panel).innerHTML = `<p class="p-4 text-sm text-rose-700">${esc(err.message)}</p>`; }
+    }
+
+    navSelect(id) {
+      const sel = this.form?.querySelector(`[name="f[${this.d.navFilter}]"]`);
+      if (!sel) return;
+      sel.value = id || '';
+      this.state.page = 1;
+      this.load();
+    }
+
+    syncNav() {
+      const panel = $('[data-nav-panel]', this.root);
+      if (!panel) return;
+      const v = this.form?.querySelector(`[name="f[${this.d.navFilter}]"]`)?.value || '';
+      $$('[data-nav-id]', panel).forEach((b) => {
+        const on = b.dataset.navId === v;
+        b.classList.toggle('bg-cyan-50', on); b.classList.toggle('text-cyan-900', on); b.classList.toggle('font-semibold', on);
+        b.setAttribute('aria-current', on ? 'true' : 'false');
+        if (on) { // make sure the selected node is visible
+          let row = b.closest('[data-nav-row]');
+          while (row && row.dataset.parent && row.dataset.parent !== '0') {
+            const parent = $(`[data-nav-row][data-id="${row.dataset.parent}"]`, panel);
+            if (parent && this.navCollapsed.has(parent.dataset.id)) { this.navCollapsed.delete(parent.dataset.id); }
+            row = parent;
+          }
+        }
+      });
+      this.applyNav(panel);
+    }
+
+    applyNav(panel) {
+      const rows = $$('[data-nav-row]', panel);
+      const byId = new Map(rows.map((r) => [r.dataset.id, r]));
+      rows.forEach((r) => {
+        let p = r.dataset.parent; let hidden = false;
+        while (p && p !== '0') { if (this.navCollapsed.has(p)) { hidden = true; break; } p = byId.get(p)?.dataset.parent; }
+        r.classList.toggle('hidden', hidden);
+        const t = $('[data-nav-toggle]', r);
+        if (t) { const c = this.navCollapsed.has(r.dataset.id); t.setAttribute('aria-expanded', String(!c)); t.firstElementChild?.classList.toggle('-rotate-90', c); }
+      });
+      store.set('nav:collapsed:' + this.key, [...this.navCollapsed]);
+    }
+
+    bindNavRows(panel) {
+      if (panel._bound) return;
+      panel._bound = true;
+      panel.addEventListener('click', (e) => {
+        const tg = e.target.closest('[data-nav-toggle]');
+        if (tg) { const id = tg.closest('[data-nav-row]').dataset.id; this.navCollapsed.has(id) ? this.navCollapsed.delete(id) : this.navCollapsed.add(id); this.applyNav(panel); return; }
+        const b = e.target.closest('[data-nav-id]');
+        if (b) { this.navSelect(b.dataset.navId); return; }
+        if (e.target.closest('[data-nav-expand]')) { this.navCollapsed.clear(); this.applyNav(panel); return; }
+        if (e.target.closest('[data-nav-collapse]')) { $$('[data-nav-row]', panel).filter((r) => r.dataset.depth !== '0' && $('[data-nav-toggle]', r)).forEach((r) => this.navCollapsed.add(r.dataset.id)); this.applyNav(panel); return; }
+        if (e.target.closest('[data-nav-hide]')) { this.toggleNav(false); }
+      });
+      // Keyboard: Up/Down move, Right/Left expand/collapse, Enter/Space select, Tab goes on to the list
+      panel.addEventListener('keydown', (e) => {
+        const b = e.target.closest('[data-nav-id]');
+        if (!b) return;
+        const visible = $$('[data-nav-id]', panel).filter((x) => !x.closest('[data-nav-row].hidden'));
+        const i = visible.indexOf(b);
+        const row = b.closest('[data-nav-row]');
+        if (e.key === 'ArrowDown') { e.preventDefault(); visible[Math.min(visible.length - 1, i + 1)]?.focus(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); visible[Math.max(0, i - 1)]?.focus(); }
+        else if (e.key === 'ArrowRight' && row && $('[data-nav-toggle]', row)) {
+          e.preventDefault();
+          if (this.navCollapsed.has(row.dataset.id)) { this.navCollapsed.delete(row.dataset.id); this.applyNav(panel); } else visible[i + 1]?.focus();
+        } else if (e.key === 'ArrowLeft' && row) {
+          e.preventDefault();
+          if ($('[data-nav-toggle]', row) && !this.navCollapsed.has(row.dataset.id)) { this.navCollapsed.add(row.dataset.id); this.applyNav(panel); }
+          else $(`[data-nav-row][data-id="${row.dataset.parent}"] [data-nav-id]`, panel)?.focus();
+        } else if (e.key === 'Enter' && !e.ctrlKey && !e.altKey) {
+          // Enter selects the group and moves into the list so ↑ ↓ Enter work there
+          e.preventDefault(); this.navSelect(b.dataset.navId); this.select(0, false); b.blur();
+        }
+      });
+    }
+
+    toggleNav(force) {
+      const panel = $('[data-nav-panel]', this.root);
+      if (!panel) return;
+      const show = force ?? panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !show);
+      panel.classList.toggle('lg:block', show);
+      $('[data-nav-show]', this.root)?.classList.toggle('hidden', show);
+      store.set('nav:hidden:' + this.key, !show);
+      if (show && !$('[data-nav-row]', panel)) this.loadNav();
     }
 
     exportCsv() { if (this.d.export) location.href = this.d.export + '?' + this.params({ page: '', per_page: '' }).toString(); }
@@ -473,11 +583,11 @@
       if (key === '__edit') return this.openRow(i);
       if (key === '__delete') {
         if (!(await confirmBox('Delete this record? This cannot be undone.', 'Delete'))) return;
-        try { const res = await http(`${this.d.delete}/${r.id}`, { method: 'POST' }); toast(res.message); this.load(); } catch (err) { toast(err.message, 'error'); }
+        try { const res = await http(`${this.d.delete}/${r.id}`, { method: 'POST' }); toast(res.message); this.reloadAll(); } catch (err) { toast(err.message, 'error'); }
         return;
       }
       if (confirmText && !(await confirmBox(confirmText))) return;
-      try { const res = await http(`${this.d.action}/${key}/${r.id}`, { method: 'POST' }); toast(res.message); this.load(); } catch (err) { toast(err.message, 'error'); }
+      try { const res = await http(`${this.d.action}/${key}/${r.id}`, { method: 'POST' }); toast(res.message); this.reloadAll(); } catch (err) { toast(err.message, 'error'); }
     }
 
     bind() {
@@ -505,8 +615,9 @@
       this.root.addEventListener('click', (e) => {
         const t = e.target;
         if (t.closest('[data-filter-toggle]')) { this.togglePanel(); return; }
+        if (t.closest('[data-nav-show]')) { this.toggleNav(true); return; }
         if (t.closest('[data-filter-close]')) { this.togglePanel(false); return; }
-        if (t.closest('[data-refresh]')) { this.load(); return; }
+        if (t.closest('[data-refresh]')) { this.reloadAll(); return; }
         if (t.closest('[data-new]')) { this.newRecord(); return; }
         if (t.closest('[data-export-btn]')) { this.exportCsv(); return; }
         if (t.closest('[data-density]')) { this.table.classList.toggle('is-dense'); this.syncUrl(); return; }
@@ -553,7 +664,7 @@
     }
 
     handleKey(e) {
-      if (isTyping(e.target) || Drawer.isOpen()) return false;
+      if (isTyping(e.target) || Drawer.isOpen() || e.target.closest?.('[data-nav-panel]')) return false;
       const n = this.rows.length;
       if (e.key === 'ArrowDown') { e.preventDefault(); this.select(Math.min(n - 1, this.selected + 1)); return true; }
       if (e.key === 'ArrowUp') { e.preventDefault(); if (this.selected <= 0) { this.select(-1); this.search?.focus(); } else this.select(this.selected - 1); return true; }

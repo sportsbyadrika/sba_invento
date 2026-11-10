@@ -29,7 +29,8 @@ $filters = $c['filters'];
      data-per-page="<?= $defaultPer ?>"
      data-drawer-width="<?= e($c['drawer_width']) ?>"
      data-columns="<?= e((string) count($c['columns'])) ?>"
-     <?php if (!empty($c['views']['tree'])): ?>data-tree="<?= e(url($c['views']['tree'])) ?>"<?php endif; ?>>
+     <?php if (!empty($c['views']['tree'])): ?>data-tree="<?= e(url($c['views']['tree'])) ?>"<?php endif; ?>
+     <?php if (!empty($c['views']['nav'])): ?>data-nav="<?= e(url($c['views']['nav'])) ?>" data-nav-filter="<?= e($c['views']['nav_filter']) ?>"<?php endif; ?>>
 
   <!-- Page header -->
   <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -66,6 +67,21 @@ $filters = $c['filters'];
   <?php endif; ?>
 
   <div class="flex flex-col gap-4 lg:flex-row lg:items-start" data-list-body>
+    <?php if (!empty($c['views']['nav'])): ?>
+    <!-- Hierarchy panel: overview of the structure; click a group (or ↑ ↓ Enter) to list everything under it -->
+    <aside class="card hidden w-full shrink-0 overflow-hidden lg:sticky lg:top-20 lg:block lg:w-72" data-nav-panel aria-label="Hierarchy">
+      <div class="flex items-center gap-1 border-b border-slate-200 px-3 py-2">
+        <h2 class="flex flex-1 items-center gap-2 text-sm font-bold text-slate-900"><?= icon('git-fork', 'size-4 text-cyan-700') ?>Hierarchy</h2>
+        <button type="button" class="btn btn-ghost btn-icon" data-nav-expand title="Expand all"><?= icon('chevrons-up-down', 'size-3.5') ?></button>
+        <button type="button" class="btn btn-ghost btn-icon" data-nav-collapse title="Collapse sub-groups"><?= icon('chevrons-down-up', 'size-3.5') ?></button>
+        <button type="button" class="btn btn-ghost btn-icon" data-nav-hide title="Hide hierarchy"><?= icon('x', 'size-3.5') ?></button>
+      </div>
+      <div class="max-h-[calc(100vh-12rem)] overflow-y-auto" data-nav-body>
+        <div class="space-y-2 p-3"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-2/3"></div><div class="skeleton h-4 w-1/2"></div></div>
+      </div>
+      <p class="border-t border-slate-200 px-3 py-1.5 text-[11px] text-slate-500"><span class="kbd">↑ ↓</span> move · <span class="kbd">→ ←</span> open / close · <span class="kbd">Enter</span> list it</p>
+    </aside>
+    <?php endif; ?>
     <section class="card min-w-0 flex-1 overflow-hidden">
       <!-- Toolbar -->
       <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 px-3 py-2">
@@ -76,6 +92,7 @@ $filters = $c['filters'];
         </div>
         <div class="flex flex-wrap items-center gap-1.5" data-active-filters></div>
         <div class="ml-auto flex items-center gap-2">
+          <?php if (!empty($c['views']['nav'])): ?><button type="button" class="btn btn-sm hidden" data-nav-show title="Show hierarchy"><?= icon('git-fork', 'size-3.5') ?>Hierarchy</button><?php endif; ?>
           <button type="button" class="btn btn-ghost btn-sm" data-refresh title="Refresh"><?= icon('refresh-cw', 'size-3.5') ?></button>
           <button type="button" class="btn btn-ghost btn-sm" data-density title="Compact rows"><?= icon('rows-3', 'size-3.5') ?></button>
           <?php if ($filters): ?>
