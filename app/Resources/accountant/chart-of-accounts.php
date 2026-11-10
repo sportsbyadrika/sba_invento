@@ -20,7 +20,8 @@ return [
     'description' => 'Groups and ledgers of your general ledger. Every transaction in every module posts to these accounts.',
     'table' => 'accounts',
     'from' => 'accounts t LEFT JOIN accounts p ON p.id = t.parent_id',
-    'views' => ['tree' => '/accountant/chart-of-accounts/tree'],
+    // tree = full-page tree; nav = hierarchy panel beside the list (click a group to list everything under it)
+    'views' => ['tree' => '/accountant/chart-of-accounts/tree', 'nav' => '/accountant/chart-of-accounts/nav', 'nav_filter' => 'subtree'],
     'creator' => true,
     'columns' => [
         'code' => ['label' => 'Code', 'sql' => 't.code', 'format' => 'code', 'width' => 'w-24'],
@@ -38,7 +39,9 @@ return [
     'filters' => [
         'account_type' => ['label' => 'Account Type', 'type' => 'select', 'sql' => 't.account_type', 'multiple' => true, 'options' => array_map(static fn ($t) => $t[0], $types)],
         'is_group' => ['label' => 'Kind', 'type' => 'select', 'sql' => 't.is_group', 'options' => ['1' => 'Groups', '0' => 'Ledgers']],
-        'parent_id' => ['label' => 'Under Group', 'type' => 'select', 'sql' => 't.parent_id', 'options' => $groups],
+        'subtree' => ['label' => 'Group (incl. sub-groups)', 'type' => 'select', 'dropdown' => true, 'sql' => '', 'options' => $groups,
+            'in_template' => 't.id IN (WITH RECURSIVE sub AS (SELECT id FROM accounts WHERE id IN ({in}) UNION ALL SELECT a.id FROM accounts a JOIN sub ON a.parent_id = sub.id) SELECT id FROM sub)'],
+        'parent_id' => ['label' => 'Directly under group', 'type' => 'select', 'dropdown' => true, 'sql' => 't.parent_id', 'options' => $groups],
         'is_active' => ['label' => 'Status', 'type' => 'select', 'sql' => 't.is_active', 'options' => ['1' => 'Active', '0' => 'Inactive']],
         'opening' => ['label' => 'Opening Balance', 'type' => 'numrange', 'sql' => 't.opening_balance'],
         'created' => ['label' => 'Created On', 'type' => 'daterange', 'sql' => 't.created_at'],

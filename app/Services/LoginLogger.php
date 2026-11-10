@@ -16,7 +16,7 @@ final class LoginLogger
             $ip = client_ip();
             $ua = substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 500);
             $parsed = UserAgent::parse($ua);
-            $geo = GeoIp::lookup($ip);
+            $geo = $event === 'logout' ? ['country' => null, 'region' => null, 'city' => null, 'isp' => null] : GeoIp::lookup($ip);
             $tz = (string) ($client['tz'] ?? '');
             if ($tz !== '' && !in_array($tz, \DateTimeZone::listIdentifiers(), true)) {
                 $tz = '';

@@ -47,6 +47,13 @@ final class GeoIp
         } catch (\Throwable) {
             // Location is best-effort - never block a login because the lookup failed.
         }
+        if ($result === $empty) {
+            // remember the failure for a day so an unreachable lookup service never slows every login
+            Database::query(
+                'REPLACE INTO ip_locations (ip_address, country, region, city, isp, fetched_at) VALUES (?,NULL,NULL,NULL,NULL,?)',
+                [$ip, gmdate('Y-m-d H:i:s', time() - $maxAge + 86400)]
+            );
+        }
         return $result;
     }
 

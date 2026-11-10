@@ -21,6 +21,11 @@ final class App
         try {
             Session::start();
             Auth::instance()->boot();
+            // Ajax GETs (list data, forms, reports) only read the session: release the session
+            // lock at once so parallel requests from the same browser do not wait for each other.
+            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && is_ajax()) {
+                session_write_close();
+            }
 
             $router = new Router();
             self::routes($router);
@@ -53,6 +58,7 @@ final class App
             [$class, $action] = $handler;
             $output = (new $class())->$action(...array_values($params));
             if (is_string($output)) {
+                perf_headers();
                 header('Content-Type: text/html; charset=utf-8');
                 echo $output;
             }
@@ -77,6 +83,7 @@ final class App
         $r->get('/reset-password/{token:[a-f0-9]+}', [AuthController::class, 'showReset']);
         $r->post('/reset-password/{token:[a-f0-9]+}', [AuthController::class, 'reset']);
 
+        $r->get('/admin/system', [\App\Controllers\SystemController::class, 'index'], ['auth', 'super']);
         $r->get('/install', [\App\Controllers\InstallController::class, 'show']);
         $r->post('/install', [\App\Controllers\InstallController::class, 'run']);
 
@@ -88,6 +95,7 @@ final class App
 
         // Accountant (special screens on top of the generic list engine)
         $r->get('/accountant/chart-of-accounts/tree', [AccountController::class, 'tree'], $auth);
+        $r->get('/accountant/chart-of-accounts/nav', [AccountController::class, 'nav'], $auth);
         $r->get('/accountant/accounts/search', [AccountController::class, 'search'], $auth);
         $r->get('/accountant/journals/new', [JournalController::class, 'form'], $auth);
         $r->get('/accountant/journals/{id:\d+}', [JournalController::class, 'show'], $auth);

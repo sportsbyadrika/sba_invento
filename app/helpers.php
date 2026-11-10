@@ -191,8 +191,26 @@ function money(mixed $amount, ?int $decimals = null): string
     return number_format((float) $amount, $decimals, '.', ',');
 }
 
+/**
+ * Server-Timing header: open DevTools > Network > (request) > Timing to see
+ * total PHP time, database connect time and query time for every request.
+ */
+function perf_headers(): void
+{
+    if (headers_sent()) {
+        return;
+    }
+    $total = (microtime(true) - ($_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true))) * 1000;
+    $db = App\Core\Database::class;
+    header(sprintf(
+        'Server-Timing: app;dur=%.1f;desc="PHP total", dbconnect;dur=%.1f;desc="DB connect", db;dur=%.1f;desc="%d queries"',
+        $total, $db::$connectMs, $db::$queryMs, $db::$queries
+    ));
+}
+
 function json_out(array $data, int $status = 200): never
 {
+    perf_headers();
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store');
