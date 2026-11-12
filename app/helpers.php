@@ -233,3 +233,22 @@ function str_slug(string $s): string
 {
     return trim((string) preg_replace('/[^a-z0-9]+/', '-', strtolower($s)), '-');
 }
+
+/** Public URL of an uploaded file (always a real file, never routed through index.php) */
+function upload_url(?string $path): string
+{
+    return $path ? base_path_url() . '/uploads/' . ltrim($path, '/') : '';
+}
+
+/** Field error from the last failed (server-rendered) form submit */
+function ferr(string $field): string
+{
+    static $errors = null;
+    $errors ??= (array) App\Core\Session::get('_errors', []);
+    return isset($errors[$field]) ? '<p class="field-error">' . e($errors[$field]) . '</p>' : '';
+}
+
+function has_err(string $field): bool
+{
+    return isset(((array) App\Core\Session::get('_errors', []))[$field]);
+}

@@ -30,6 +30,14 @@ final class SystemController
         $add('Deployment', 'cPanel PHP handler in public/.htaccess', str_contains($ht, 'cPanel-generated handler') ? 'present' : 'none (server default PHP is used)',
             str_contains($ht, 'cPanel-generated handler') ? 'ok' : 'warn', 'Re-select the PHP version in cPanel → MultiPHP Manager to write it again.');
 
+        try {
+            $pending = \App\Services\Migrator::pending();
+            $add('Deployment', 'Database updates', $pending ? 'pending: ' . implode(', ', $pending) : 'up to date (' . count(\App\Services\Migrator::files()) . ' applied)', $pending ? 'bad' : 'ok',
+                'Pending updates are applied automatically on the next page load. Check storage/logs/php-error.log if they stay pending.');
+        } catch (\Throwable $e) {
+            $add('Deployment', 'Database updates', 'cannot check: ' . $e->getMessage(), 'bad');
+        }
+
         // ---- PHP
         $opcache = function_exists('opcache_get_status') ? @opcache_get_status(false) : false;
         $add('PHP', 'Version / SAPI', PHP_VERSION . ' / ' . PHP_SAPI, PHP_VERSION_ID >= 80200 ? 'ok' : 'bad');

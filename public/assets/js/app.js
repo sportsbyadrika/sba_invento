@@ -247,12 +247,15 @@
   $$('[data-ajax-form]').forEach((form) => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (form.dataset.confirmSubmit && !(await confirmBox(form.dataset.confirmSubmit))) return;
       clearErrors(form);
+      const body = new FormData(form, e.submitter || undefined); // includes the clicked button's name/value
       const btn = $('button[type=submit]', form); if (btn) btn.disabled = true;
       try {
-        const res = await http(form.action, { method: 'POST', body: new FormData(form) });
+        const res = await http(form.action, { method: 'POST', body });
         toast(res.message || 'Saved.');
         if (form.hasAttribute('data-reset-on-success')) form.reset();
+        if (res.redirect && form.hasAttribute('data-redirect-on-success')) setTimeout(() => { location.href = res.redirect; }, 400);
       } catch (err) { showErrors(form, err.data || { message: err.message }); }
       finally { if (btn) btn.disabled = false; }
     });
@@ -587,7 +590,7 @@
         return;
       }
       if (confirmText && !(await confirmBox(confirmText))) return;
-      try { const res = await http(`${this.d.action}/${key}/${r.id}`, { method: 'POST' }); toast(res.message); this.reloadAll(); } catch (err) { toast(err.message, 'error'); }
+      try { const res = await http(`${this.d.action}/${key}/${r.id}`, { method: 'POST' }); toast(res.message); if (res.redirect) { location.href = res.redirect; return; } this.reloadAll(); } catch (err) { toast(err.message, 'error'); }
     }
 
     bind() {
@@ -715,7 +718,7 @@
     const b = e.target.closest('[data-row-action]');
     if (!b) return;
     if (b.dataset.confirm && !(await confirmBox(b.dataset.confirm))) return;
-    try { const res = await http(`${box.dataset.actionUrl}/${b.dataset.rowAction}/${b.dataset.id}`, { method: 'POST' }); toast(res.message); setTimeout(() => location.reload(), 500); }
+    try { const res = await http(`${box.dataset.actionUrl}/${b.dataset.rowAction}/${b.dataset.id}`, { method: 'POST' }); toast(res.message); setTimeout(() => { if (res.redirect) location.href = res.redirect; else location.reload(); }, 500); }
     catch (err) { toast(err.message, 'error'); }
   }));
 
@@ -959,6 +962,226 @@
     dirty = false;
   }
 
+  // ------------------------------------------------------------------ Online shop behaviours
+  $$('form[data-autosubmit]').forEach((f) => f.addEventListener('change', (e) => { if (e.target.type !== 'number') f.requestSubmit(); }));
+  $$('[data-width]').forEach((el) => { el.style.width = Math.max(0, Math.min(100, +el.dataset.width)) + '%'; });
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-gallery-thumb]');
+    if (!t) return;
+    const g = t.closest('[data-gallery]');
+    $('[data-gallery-main]', g).src = t.dataset.galleryThumb;
+    $$('[data-gallery-thumb]', g).forEach((b) => { b.classList.toggle('border-cyan-600', b === t); b.classList.toggle('border-slate-200', b !== t); });
+  });
+  document.addEventListener('submit', async (e) => {
+    const f = e.target.closest('form[data-confirm-submit]:not([data-ajax-form])');
+    if (!f || f.dataset.confirmed) return;
+    e.preventDefault();
+    if (await confirmBox(f.dataset.confirmSubmit)) { f.dataset.confirmed = '1'; f.requestSubmit(); }
+  });
+
+  // ------------------------------------------------------------------ Receive goods: live landed-cost preview
+  $$('[data-receive]').forEach((form) => {
+    const calc = () => {
+      const rows = $$('[data-r-line]', form);
+      const num = (v) => { const n = parseFloat(String(v || '').replace(/,/g, '')); return Number.isFinite(n) ? n : 0; };
+      const freight = num($('[data-r-freight]', form).value);
+      const value = rows.reduce((t, r) => t + num($('[data-r-qty]', r).value) * +r.dataset.net, 0);
+      rows.forEach((r) => {
+        const q = num($('[data-r-qty]', r).value); const net = +r.dataset.net;
+        const share = value > 0 && q > 0 ? (q * net) / value * freight / q : 0;
+        $('[data-r-cost]', r).textContent = (net + share).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      });
+    };
+    form.addEventListener('input', calc); calc();
+  });
+
+  // ------------------------------------------------------------------ Quote / invoice / purchase order entry grid
+  const docForm = $('[data-document]');
+  if (docForm) initDocument(docForm);
+
+  function initDocument(form) {
+    const cfg = JSON.parse($('[data-document-config]', form).textContent);
+    const tbody = $('[data-lines]', form);
+    const tpl = $('[data-line-template]');
+    const curSel = $('[data-currency]', form);
+    const rateIn = $('[data-rate]', form);
+    const freightIn = $('[data-freight]', form);
+    let dirty = false;
+    const cache = new Map();
+    const cur = () => cfg.currencies.find((c) => c.code === curSel.value) || { decimals: 2, rate: 1, base: true };
+    const num = (v) => { const n = parseFloat(String(v ?? '').replace(/,/g, '')); return Number.isFinite(n) ? n : 0; };
+    const round = (x) => { const d = 10 ** cur().decimals; return Math.round(x * d) / d; };
+    const fmt = (n) => n.toLocaleString(undefined, { minimumFractionDigits: cur().decimals, maximumFractionDigits: cur().decimals });
+    const lines = () => $$('tr[data-line]', tbody);
+    const f = (tr, k) => $(`[data-f="${k}"]`, tr);
+    const taxOptions = '<option value="">No tax</option>' + cfg.taxes.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+
+    function addLine(d = {}, focus = false) {
+      const tr = tpl.content.firstElementChild.cloneNode(true);
+      tbody.appendChild(tr);
+      f(tr, 'tax_rate_id').innerHTML = taxOptions;
+      f(tr, 'item_id').value = d.item_id || '';
+      const inp = $('[data-item-input]', tr); inp.value = inp.dataset.label = d.item_label || '';
+      f(tr, 'description').value = d.description || '';
+      f(tr, 'qty').value = d.qty ?? '';
+      f(tr, 'unit_price').value = d.unit_price ?? '';
+      f(tr, 'discount_pct').value = d.discount_pct ? d.discount_pct : '';
+      f(tr, 'tax_rate_id').value = d.tax_rate_id ?? (d.item_id === undefined ? (cfg.defaultTax || '') : '');
+      renumber(); recalc();
+      if (focus) inp.focus();
+      return tr;
+    }
+    function renumber() { lines().forEach((tr, i) => { $('[data-line-no]', tr).textContent = i + 1; }); }
+    function recalc() {
+      let sub = 0, disc = 0, tax = 0;
+      lines().forEach((tr) => {
+        const gross = round(num(f(tr, 'qty').value) * num(f(tr, 'unit_price').value));
+        const net = round(gross * (1 - Math.min(100, num(f(tr, 'discount_pct').value)) / 100));
+        const t = cfg.taxes.find((x) => String(x.id) === f(tr, 'tax_rate_id').value);
+        const ta = round(net * (t ? t.rate : 0) / 100);
+        $('[data-amount]', tr).textContent = fmt(net);
+        sub += net; disc += gross - net; tax += ta;
+      });
+      const fr = round(num(freightIn.value));
+      const total = round(sub + tax + fr);
+      $('[data-t-sub]', form).textContent = fmt(sub);
+      $('[data-t-disc]', form).textContent = fmt(disc);
+      $('[data-t-tax]', form).textContent = fmt(tax);
+      $('[data-t-total]', form).textContent = fmt(total);
+      const c = cur(); const rate = c.base ? 1 : num(rateIn.value);
+      $('[data-base-note]', form).textContent = c.base ? '' : `≈ ${(total * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${cfg.base}`;
+    }
+
+    // item combobox
+    let active = { tr: null, items: [], index: -1 };
+    const listOf = (tr) => $('[data-item-list]', tr);
+    const closeList = (tr) => { listOf(tr).classList.add('hidden'); active = { tr: null, items: [], index: -1 }; };
+    function renderList(tr, items) {
+      active = { tr, items, index: items.length ? 0 : -1 };
+      listOf(tr).innerHTML = items.length ? items.map((it, i) => `<li data-i="${i}" class="cursor-pointer px-3 py-1.5 text-sm ${i === 0 ? 'bg-cyan-50' : ''} hover:bg-slate-100"><span class="font-mono text-xs text-slate-500">${esc(it.sku)}</span> <span class="font-medium text-slate-900">${esc(it.name)}</span>
+        <span class="float-right text-xs text-slate-500">${it.on_hand === null ? 'service' : 'stock ' + (+it.on_hand)}${' · ' + (+(cfg.kind === 'sale' ? it.sales_price : it.purchase_price)).toFixed(2)}</span></li>`).join('') : '<li class="px-3 py-2 text-sm text-slate-500">No item found - type a description instead</li>';
+      listOf(tr).classList.remove('hidden');
+    }
+    const highlight = () => $$('li[data-i]', listOf(active.tr)).forEach((li, i) => { li.classList.toggle('bg-cyan-50', i === active.index); if (i === active.index) li.scrollIntoView({ block: 'nearest' }); });
+    function choose(tr, it) {
+      const inp = $('[data-item-input]', tr);
+      f(tr, 'item_id').value = it.id;
+      inp.value = inp.dataset.label = `${it.sku} · ${it.name}`;
+      inp.classList.remove('is-invalid');
+      if (!f(tr, 'qty').value) f(tr, 'qty').value = 1;
+      f(tr, 'unit_price').value = +(cfg.kind === 'sale' ? it.sales_price : it.purchase_price) || '';
+      f(tr, 'tax_rate_id').value = it.tax_rate_id || '';
+      closeList(tr); recalc(); dirty = true;
+      f(tr, 'description').focus();
+    }
+    const search = debounce(async (tr, q) => {
+      try {
+        if (!cache.has(q)) cache.set(q, (await http(cfg.searchUrl + '?q=' + encodeURIComponent(q))).items);
+        if (document.activeElement === $('[data-item-input]', tr)) renderList(tr, cache.get(q));
+      } catch (err) { toast(err.message, 'error'); }
+    }, 120);
+
+    tbody.addEventListener('input', (e) => {
+      dirty = true;
+      const tr = e.target.closest('tr[data-line]');
+      if (e.target.matches('[data-item-input]')) {
+        if (e.target.value !== e.target.dataset.label) f(tr, 'item_id').value = '';
+        search(tr, e.target.value.trim());
+      } else recalc();
+    });
+    tbody.addEventListener('change', recalc);
+    tbody.addEventListener('focusin', (e) => { if (e.target.matches('[data-item-input]')) { e.target.select(); search(e.target.closest('tr'), e.target.value === e.target.dataset.label ? '' : e.target.value.trim()); } });
+    tbody.addEventListener('focusout', (e) => {
+      const tr = e.target.closest('tr[data-line]');
+      if (e.target.matches('[data-item-input]')) setTimeout(() => { if (!tr.contains(document.activeElement)) closeList(tr); }, 150);
+    });
+    tbody.addEventListener('mousedown', (e) => { const li = e.target.closest('li[data-i]'); if (li) { e.preventDefault(); choose(active.tr, active.items[+li.dataset.i]); } });
+    tbody.addEventListener('click', (e) => {
+      const rm = e.target.closest('[data-remove-line]');
+      if (rm) { const tr = rm.closest('tr'); if (lines().length > 1) tr.remove(); else $$('input', tr).forEach((i) => (i.value = '')); renumber(); recalc(); dirty = true; }
+    });
+    const order = ['item', 'description', 'qty', 'unit_price', 'discount_pct', 'tax_rate_id'];
+    tbody.addEventListener('keydown', (e) => {
+      const tr = e.target.closest('tr[data-line]');
+      if (!tr) return;
+      const isItem = e.target.matches('[data-item-input]');
+      const listOpen = active.tr === tr && !listOf(tr).classList.contains('hidden');
+      if (isItem && listOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); active.index = Math.max(0, Math.min(active.items.length - 1, active.index + (e.key === 'ArrowDown' ? 1 : -1))); highlight(); return; }
+      if (isItem && e.key === 'Escape' && listOpen) { e.preventDefault(); e.stopPropagation(); closeList(tr); return; }
+      if (e.key === 'Delete' && e.ctrlKey) { e.preventDefault(); const p = tr.previousElementSibling || tr.nextElementSibling; if (lines().length > 1) { tr.remove(); renumber(); recalc(); $('[data-item-input]', p)?.focus(); } return; }
+      if (e.key !== 'Enter' || e.ctrlKey || e.altKey) return;
+      e.preventDefault();
+      if (isItem) {
+        if (listOpen && active.index >= 0 && active.items[active.index] && e.target.value.trim() !== '' && e.target.value !== e.target.dataset.label) return choose(tr, active.items[active.index]);
+        if (f(tr, 'item_id').value || e.target.value.trim() !== '') { closeList(tr); return f(tr, 'description').focus(); }
+        // blank item ends the entry
+        if (lines().filter((l) => f(l, 'item_id').value || f(l, 'description').value).length) { if (lines().length > 1) { tr.remove(); renumber(); recalc(); } freightIn.focus(); }
+        return;
+      }
+      const k = e.target.dataset.f;
+      const i = order.indexOf(k);
+      if (i >= 0 && i < order.length - 1) { const next = f(tr, order[i + 1]); next.focus(); next.select?.(); return; }
+      if (k === 'tax_rate_id') { const next = tr.nextElementSibling || addLine({}); $('[data-item-input]', next).focus(); }
+    });
+
+    // header
+    const contactSel = $('[data-contact]', form);
+    contactSel.addEventListener('change', () => {
+      const c = cfg.contacts.find((x) => String(x.id) === contactSel.value);
+      if (!c) return;
+      if (c.currency && cfg.currencies.some((x) => x.code === c.currency)) { curSel.value = c.currency; onCurrency(); }
+      const pos = $('[data-pos]', form); if (pos && c.pos) pos.value = c.pos;
+      const due = $('[data-due]', form);
+      if (due && !due.value && cfg.type === 'invoice') { const d = new Date($('#doc_date', form).value || Date.now()); d.setDate(d.getDate() + (c.terms || 0)); due.value = iso(d); }
+      dirty = true;
+    });
+    function onCurrency() {
+      const c = cur();
+      $('[data-rate-wrap]', form).classList.toggle('hidden', c.base);
+      if (!c.base && (!rateIn.value || num(rateIn.value) === 1)) rateIn.value = c.rate;
+      if (c.base) rateIn.value = 1;
+      $$('[data-cur-label]', form).forEach((x) => (x.textContent = c.code));
+      recalc();
+    }
+    curSel.addEventListener('change', () => { onCurrency(); dirty = true; });
+    rateIn.addEventListener('input', recalc);
+    freightIn.addEventListener('input', recalc);
+    $('[data-add-line]', form).addEventListener('click', () => addLine({}, true));
+
+    async function submit(action, after = '') {
+      $('[data-submit-action]', form).value = action;
+      $('[data-after]', form).value = after;
+      clearErrors(form);
+      const fd = new FormData();
+      new FormData(form).forEach((v, k) => fd.append(k, v));
+      lines().forEach((tr, i) => ['item_id', 'description', 'qty', 'unit_price', 'discount_pct', 'tax_rate_id'].forEach((k) => fd.append(`lines[${i}][${k}]`, f(tr, k).value)));
+      const btns = $$('button[type=submit]', form); btns.forEach((b) => (b.disabled = true));
+      try {
+        const res = await http(form.action, { method: 'POST', body: fd });
+        dirty = false; toast(res.message);
+        setTimeout(() => { location.href = res.redirect; }, 350);
+      } catch (err) {
+        const data = err.data || { message: err.message };
+        showErrors(form, data);
+        Object.entries(data.errors || {}).forEach(([k, msg]) => {
+          const m = k.match(/^lines\.(\d+)\.(\w+)$/); if (!m) return;
+          const tr = lines()[+m[1]]; if (!tr) return;
+          (m[2] === 'item_id' ? $('[data-item-input]', tr) : f(tr, m[2]))?.classList.add('is-invalid');
+          const h = $(`[data-line-error="${m[2]}"]`, tr); if (h) { h.textContent = msg; h.classList.remove('hidden'); }
+        });
+        if (data.errors?.lines) { const h = $('[data-error-for="lines"]', form); h.textContent = data.errors.lines; h.classList.remove('hidden'); }
+      } finally { btns.forEach((b) => (b.disabled = false)); }
+    }
+    form.addEventListener('submit', (e) => { e.preventDefault(); const b = e.submitter; submit(b?.dataset.submit || 'draft', b?.hasAttribute('data-after-new') ? 'new' : ''); });
+    form.addEventListener('input', () => { dirty = true; });
+    window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+    form.journalApi = { save: () => submit('draft'), post: () => submit('post'), add: () => addLine({}, true), balance: () => {} };
+
+    (cfg.lines.length ? cfg.lines : [{}]).forEach((l) => addLine(l));
+    onCurrency();
+    dirty = false;
+  }
+
   // ------------------------------------------------------------------ "Go to" palette (Ctrl+K / Alt+G)
   const goto = $('[data-goto]');
   const gotoItems = goto ? JSON.parse($('[data-goto-data]', goto).textContent) : [];
@@ -1012,14 +1235,14 @@
     }
     if (e.key === 'Escape') { closeDropdowns(); if (document.activeElement && isTyping(document.activeElement)) document.activeElement.blur(); }
 
-    const j = journal?.journalApi;
+    const j = journal?.journalApi || docForm?.journalApi;
     if (j) {
       if ((e.ctrlKey || e.metaKey) && k === 's') { e.preventDefault(); j.save(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); j.post(); return; }
       if (e.altKey && k === 'p') { e.preventDefault(); j.post(); return; }
       if (e.altKey && k === 'a') { e.preventDefault(); j.add(); return; }
       if (e.altKey && k === 'b') { e.preventDefault(); j.balance(); return; }
-      if (e.key === 'Escape' && !isTyping(e.target)) { location.href = BASE + '/accountant/journals'; return; }
+      if (e.key === 'Escape' && !isTyping(e.target)) { location.href = journal ? BASE + '/accountant/journals' : (docForm.action.replace(/\/store$/, '')); return; }
     }
 
     const list = lists.find((l) => !l.root.closest('.hidden'));

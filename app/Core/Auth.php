@@ -86,6 +86,25 @@ final class Auth
         Session::set('cid', (int) $company['id']);
     }
 
+    /** Run as a user in a company without a web session (installer, scheduled jobs, shop postings). */
+    public function actAs(array $user, int $companyId): void
+    {
+        $this->user = $user;
+        $this->companies = null;
+        $this->permissions = null;
+        $this->loadCompany($companyId);
+    }
+
+    /** Public online shop: company context (prices, taxes, decimals) without any staff user. */
+    public function useCompany(int $companyId): void
+    {
+        $company = Database::one('SELECT * FROM companies WHERE id = ?', [$companyId]);
+        if ($company) {
+            $company['_decimals'] = (int) (Database::value('SELECT decimal_places FROM currencies WHERE company_id = ? AND code = ?', [$companyId, $company['base_currency']]) ?? 2);
+        }
+        $this->company = $company;
+    }
+
     public function check(): bool
     {
         return $this->user !== null;

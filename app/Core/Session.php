@@ -17,7 +17,10 @@ final class Session
             ini_set('session.sid_length', '48');
             ini_set('session.sid_bits_per_character', '6');
         }
-        session_name((string) config('security.session_name', 'sba_sid'));
+        // The public online shop (/store/...) uses its own cookie: customers and staff never share a session.
+        $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $isStore = (bool) preg_match('#^' . preg_quote(base_path_url(), '#') . '(/index\.php)?/store(/|$)#', $path);
+        session_name($isStore ? 'sba_store' : (string) config('security.session_name', 'sba_sid'));
         session_set_cookie_params([
             'lifetime' => 0,
             'path'     => base_path_url() ?: '/',

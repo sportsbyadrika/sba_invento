@@ -91,7 +91,20 @@ Production checklist: `app.debug=false`, `app.force_https=true`, a real `app.url
 | **Reports** | Trial balance, general ledger, profit & loss, balance sheet, day book. All have filters, print and CSV export |
 | **Settings** | Company profile (tax regime, TRN/GSTIN, FY start, date format, time zone), currencies and exchange-rate history, tax rates, document numbering, login log, audit trail |
 
-Planned screens (invoices, bills, payments, stock movements, VAT/GST returns …) already appear in the menu with a phase badge and open a roadmap page. See `config/menu.php`.
+### Phase 2 (built): stock, purchases, sales and the online shop
+
+| Area | Screens |
+|---|---|
+| **Stock (FIFO)** | Every receipt creates a stock batch at **landed cost** (price after discount + share of freight). Sales consume the oldest batch first. Stock Summary (on hand, reserved by web orders, available, value) and Stock Ledger |
+| **Purchases** | Purchase Orders (keyboard line entry, multi-currency, VAT/GST), **Receive goods** (partial deliveries, freight, live landed-cost preview, update the selling price), Goods Receipts list |
+| **Sales** | Quotes (sent / accepted / declined → **convert to invoice**), Invoices (post = stock out at FIFO cost + receivables/sales/tax entries), **Record payment**, Credit Notes, Payments Received, printable A4 tax invoice / quotation / PO |
+| **Online shop (public)** | `/store/<name>`: catalogue with filters (category, price, brand, rating, specifications, in-stock, offers) and sorting; product page with gallery, specs, stock badge and verified reviews; registration (name, mobile with country code, e-mail, password + confirm), sign-in with lock-out, forgot password; cart, checkout with saved labelled addresses, **Cash on Delivery** (ePayment shown as *coming soon*); my orders with the price paid at the time, delivery timeline, invoice download, cancel, **return request**, reviews, buy again |
+| **Online shop (staff)** | Online Orders, **Dispatch** queue (confirm → pack → ship with courier/tracking → out for delivery → delivered). Shipping posts the tax invoice and issues stock; delivery records COD cash. **Returns** (approve/reject → receive goods → credit note + stock back → refund), review moderation, shop customers, **Shop Settings** (address, delivery fee, free-delivery threshold, COD limit/fee, return window, policy pages) |
+| **Items → online** | Publish switch, online price, MRP / "was" price, **online stock cap** (show at most N), brand, specifications used as shop filters, min/max order qty, return window, image manager (upload, main image, delete; resized & re-encoded) |
+
+GST is split into CGST + SGST (same state) or IGST (other state) automatically from the place of supply. Database changes ship as `database/migrations/*.sql` and are applied automatically on the first request after a deploy.
+
+Still planned (they show a phase badge in the menu): online payment gateway, sales orders, delivery notes, recurring invoices, vendor bills & payments made, stock adjustments/transfers, price lists, bank reconciliation, VAT/GST returns. See `config/menu.php`.
 
 ## 4. How a list screen works
 

@@ -90,7 +90,7 @@ final class ResourceController
             $rows[] = [
                 'id' => (int) $row['__id'],
                 'cells' => $cells,
-                'url' => isset($r->c['row_url']) ? url(str_replace('{id}', (string) $row['__id'], $r->c['row_url'])) : null,
+                'url' => isset($r->c['row_url']) ? url((string) preg_replace_callback('/\{(\w+)\}/', static fn ($m) => rawurlencode((string) ($m[1] === 'id' ? $row['__id'] : ($row[$m[1]] ?? ''))), $r->c['row_url'])) : null,
                 'edit' => $canEdit && (!isset($r->c['can_edit_row']) || ($r->c['can_edit_row'])($row)),
                 'view' => $hasForm,
                 'delete' => $deletable,
@@ -279,6 +279,9 @@ final class ResourceController
             json_out(['ok' => false, 'message' => $v->getMessage()], 422);
         }
         Audit::log($r->key, (int) $id, $key);
+        if (is_array($message)) {
+            json_out(['ok' => true] + $message);
+        }
         json_out(['ok' => true, 'message' => $message ?: 'Done.']);
     }
 }

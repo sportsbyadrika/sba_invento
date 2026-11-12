@@ -15,6 +15,10 @@ final class NumberSeries
         'bill'     => 'BILL-',
         'receipt'  => 'RCT-',
         'payment'  => 'PAY-',
+        'po'       => 'PO-',
+        'credit_note' => 'CN-',
+        'shop_order' => 'WEB-',
+        'shop_return' => 'RMA-',
         'customer' => 'C',
         'vendor'   => 'V',
     ];

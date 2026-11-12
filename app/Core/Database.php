@@ -86,6 +86,9 @@ final class Database
     public static function transaction(callable $fn): mixed
     {
         $pdo = self::pdo();
+        if ($pdo->inTransaction()) {
+            return $fn(); // nested call: the outer transaction commits or rolls back everything
+        }
         $pdo->beginTransaction();
         try {
             $result = $fn();

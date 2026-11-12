@@ -36,7 +36,7 @@ done
     --exclude='package.json' --exclude='package-lock.json' --exclude='hallsons.htm' \
     --exclude='/config/config.php' --exclude='/storage/' \
     --exclude='.well-known/' --exclude='php.ini' --exclude='.user.ini' --exclude='error_log' \
-    --exclude='cgi-bin/' \
+    --exclude='cgi-bin/' --exclude='/public/uploads/' \
     "$REPO/" "$DEST/"
 
 # 3. Put the cPanel-generated blocks back at the top of each .htaccess (where cPanel writes them)
@@ -55,6 +55,10 @@ done
 mkdir -p "$DEST/storage/logs" "$DEST/storage/mail" "$DEST/storage/cache"
 chmod 755 "$DEST/storage" "$DEST/storage/logs" "$DEST/storage/mail" "$DEST/storage/cache"
 cp -f "$REPO/storage/.htaccess" "$DEST/storage/.htaccess"
+# Product images live on the server only (never deleted by a deploy)
+mkdir -p "$DEST/public/uploads"
+chmod 755 "$DEST/public/uploads"
+cp -f "$REPO/public/uploads/.htaccess" "$DEST/public/uploads/.htaccess"
 
 # 5. Record what is deployed (shown on System Health)
 {
