@@ -72,7 +72,7 @@ return [
         'section_stock' => ['label' => 'Stock', 'type' => 'section'],
         'track_inventory' => ['label' => 'Track stock quantity', 'type' => 'checkbox', 'default' => 1],
         'reorder_level' => ['label' => 'Re-order Level', 'type' => 'decimal', 'min' => 0],
-        'opening_stock' => ['label' => 'Opening Stock (qty)', 'type' => 'decimal', 'min' => 0],
+        'opening_stock' => ['label' => 'Opening Stock (qty)', 'type' => 'decimal', 'min' => 0, 'create_only' => true, 'help' => 'Only when creating the item - later stock comes from purchase orders.'],
         'description' => ['label' => 'Internal description', 'type' => 'textarea', 'max' => 500, 'col' => 2],
         'is_active' => ['label' => 'Active', 'type' => 'checkbox', 'default' => 1],
         'section_online' => ['label' => 'Online shop', 'type' => 'section'],
@@ -91,6 +91,12 @@ return [
         'attributes' => ['label' => 'Specifications & filters', 'type' => 'textarea', 'max' => 3000, 'col' => 2, 'placeholder' => "Colour: Black\nScreen size: 24 inch\nWarranty: 2 years", 'help' => 'One “Name: value” per line. Shoppers can filter by these.'],
     ],
     'hooks' => [
+        // Opening stock of a new item becomes its first FIFO batch (at the cost price)
+        'after_save' => static function (int $id, array $d, ?array $existing): void {
+            if (!$existing && (int) ($d['track_inventory'] ?? 0) === 1 && (float) ($d['opening_stock'] ?? 0) > 0) {
+                App\Services\Stock::receive((int) Auth::instance()->companyId(), $id, (float) $d['opening_stock'], (float) ($d['purchase_price'] ?? 0), date('Y-m-d'), 'opening', $id, 'Opening stock');
+            }
+        },
         'before_save' => static function (array $d): array {
             if (($d['item_type'] ?? '') === 'service') {
                 $d['track_inventory'] = 0;
