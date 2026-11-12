@@ -86,6 +86,15 @@ final class Auth
         Session::set('cid', (int) $company['id']);
     }
 
+    /** Run as a user in a company without a web session (installer, scheduled jobs, shop postings). */
+    public function actAs(array $user, int $companyId): void
+    {
+        $this->user = $user;
+        $this->companies = null;
+        $this->permissions = null;
+        $this->loadCompany($companyId);
+    }
+
     public function check(): bool
     {
         return $this->user !== null;

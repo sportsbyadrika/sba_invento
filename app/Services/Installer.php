@@ -32,6 +32,7 @@ final class Installer
         foreach (array_filter(array_map('trim', explode(';', $sql))) as $stmt) {
             $pdo->exec($stmt);
         }
+        Migrator::run(); // later changes (database/migrations/*.sql)
     }
 
     public static function hasUsers(): bool

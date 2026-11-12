@@ -19,6 +19,15 @@ final class App
     {
         self::securityHeaders();
         try {
+            // New database changes after a deploy are applied automatically (once)
+            if (\App\Services\Migrator::needsCheck() && is_file(BASE_PATH . '/storage/installed.lock')) {
+                try {
+                    \App\Services\Migrator::run();
+                } catch (\Throwable $e) {
+                    error_log('Migration failed: ' . $e->getMessage());
+                    throw new HttpException(500, 'A database update could not be applied: ' . $e->getMessage());
+                }
+            }
             Session::start();
             Auth::instance()->boot();
             // Ajax GETs (list data, forms, reports) only read the session: release the session
@@ -101,6 +110,19 @@ final class App
         $r->get('/accountant/journals/{id:\d+}', [JournalController::class, 'show'], $auth);
         $r->get('/accountant/journals/{id:\d+}/edit', [JournalController::class, 'form'], $auth);
         $r->post('/accountant/journals/store', [JournalController::class, 'store'], $auth);
+
+        // Sales & purchase documents
+        $doc = '{module:sales|purchases}/{resource:quotes|invoices|credit-notes|orders}';
+        $D = \App\Controllers\DocumentController::class;
+        $r->get('/inventory/items/search', [$D, 'itemSearch'], $auth);
+        $r->get("/$doc/new", [$D, 'form'], $auth);
+        $r->post("/$doc/store", [$D, 'store'], $auth);
+        $r->get("/$doc/{id:\d+}", [$D, 'show'], $auth);
+        $r->get("/$doc/{id:\d+}/edit", [$D, 'form'], $auth);
+        $r->get("/$doc/{id:\d+}/print", [$D, 'print'], $auth);
+        $r->post("/$doc/{id:\d+}/payment", [$D, 'payment'], $auth);
+        $r->get('/purchases/orders/{id:\d+}/receive', [$D, 'receiveForm'], $auth);
+        $r->post('/purchases/orders/{id:\d+}/receive', [$D, 'receive'], $auth);
 
         // Reports
         $r->get('/reports/{report:trial-balance|ledger|profit-loss|balance-sheet|day-book}', [ReportController::class, 'show'], $auth);
