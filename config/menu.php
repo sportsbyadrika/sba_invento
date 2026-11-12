@@ -30,7 +30,7 @@ return [
         ['label' => 'Invoices', 'url' => '/sales/invoices', 'icon' => 'receipt', 'hint' => 'Post, collect payments'],
         ['label' => 'Recurring Invoices', 'url' => '/sales/recurring', 'icon' => 'repeat', 'planned' => 4],
         ['label' => 'Delivery Notes', 'url' => '/sales/delivery-notes', 'icon' => 'truck', 'planned' => 4],
-        ['label' => 'Payments Received', 'url' => '/sales/receipts', 'icon' => 'hand-coins', 'planned' => 4],
+        ['label' => 'Payments Received', 'url' => '/sales/receipts', 'icon' => 'hand-coins', 'hint' => 'Customer payments & COD collections'],
         ['label' => 'Credit Notes', 'url' => '/sales/credit-notes', 'icon' => 'file-minus', 'hint' => 'Returns & refunds'],
     ]],
     ['label' => 'Purchases', 'icon' => 'shopping-bag', 'module' => 'purchases', 'children' => [

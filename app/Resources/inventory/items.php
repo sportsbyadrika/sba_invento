@@ -30,13 +30,16 @@ return [
         'sales_price' => ['label' => 'Selling Price', 'sql' => 't.sales_price', 'format' => 'money', 'align' => 'right'],
         'purchase_price' => ['label' => 'Cost Price', 'sql' => 't.purchase_price', 'format' => 'money', 'align' => 'right'],
         'margin' => ['label' => 'Margin %', 'sql' => 'CASE WHEN t.sales_price > 0 THEN ROUND((t.sales_price - t.purchase_price) / t.sales_price * 100, 1) END', 'align' => 'right', 'render' => static fn ($r) => $r['margin'] === null ? '<span class="text-slate-400">—</span>' : '<span class="tabular-nums ' . ($r['margin'] < 0 ? 'text-rose-600' : ($r['margin'] < 10 ? 'text-amber-600' : 'text-emerald-700')) . '">' . e($r['margin']) . '%</span>'],
+        'stock' => ['label' => 'On hand', 'sql' => '(SELECT COALESCE(SUM(b.qty_remaining),0) FROM stock_batches b WHERE b.item_id = t.id)', 'align' => 'right', 'render' => static fn ($r) => $r['track_inventory'] ? '<span class="tabular-nums ' . ((float) $r['stock'] <= 0 ? 'text-rose-600' : '') . '">' . e(rtrim(rtrim(number_format((float) $r['stock'], 3), '0'), '.') ?: '0') . '</span>' : '<span class="text-slate-300">—</span>'],
+        'online' => ['label' => 'Online', 'sql' => 't.publish_online', 'render' => static fn ($r) => '<a class="inline-flex items-center gap-1 text-xs font-semibold ' . ($r['online'] ? 'text-violet-700' : 'text-slate-400') . ' hover:underline" href="' . e(url('/inventory/items/' . $r['__id'] . '/images')) . '">' . ($r['online'] ? 'Published' : 'Hidden') . ' · ' . (int) $r['images'] . ' img</a>'],
         'is_active' => ['label' => 'Status', 'sql' => 't.is_active', 'format' => 'status'],
     ],
-    'select_extra' => ['barcode' => 't.barcode'],
+    'select_extra' => ['barcode' => 't.barcode', 'track_inventory' => 't.track_inventory', 'images' => '(SELECT COUNT(*) FROM item_images im WHERE im.item_id = t.id)'],
     'default_sort' => ['name', 'asc'],
     'search' => ['t.sku', 't.name', 't.barcode', 't.hsn_sac', 'c.name'],
     'filters' => [
         'item_type' => ['label' => 'Item Type', 'type' => 'select', 'sql' => 't.item_type', 'options' => ['goods' => 'Goods', 'service' => 'Service']],
+        'publish_online' => ['label' => 'Online shop', 'type' => 'select', 'sql' => 't.publish_online', 'options' => ['1' => 'Published', '0' => 'Not published']],
         'category_id' => ['label' => 'Category', 'type' => 'select', 'sql' => 't.category_id', 'options' => $opt('SELECT id, name label FROM item_categories WHERE company_id = ? ORDER BY name')],
         'tax_rate_id' => ['label' => 'Tax Rate', 'type' => 'select', 'sql' => 't.tax_rate_id', 'options' => $opt('SELECT id, name label FROM tax_rates WHERE company_id = ? ORDER BY rate')],
         'unit_id' => ['label' => 'Unit', 'type' => 'select', 'sql' => 't.unit_id', 'options' => $opt('SELECT id, name label FROM units WHERE company_id = ? ORDER BY name')],
@@ -70,8 +73,22 @@ return [
         'track_inventory' => ['label' => 'Track stock quantity', 'type' => 'checkbox', 'default' => 1],
         'reorder_level' => ['label' => 'Re-order Level', 'type' => 'decimal', 'min' => 0],
         'opening_stock' => ['label' => 'Opening Stock (qty)', 'type' => 'decimal', 'min' => 0],
-        'description' => ['label' => 'Description', 'type' => 'textarea', 'max' => 500, 'col' => 2],
+        'description' => ['label' => 'Internal description', 'type' => 'textarea', 'max' => 500, 'col' => 2],
         'is_active' => ['label' => 'Active', 'type' => 'checkbox', 'default' => 1],
+        'section_online' => ['label' => 'Online shop', 'type' => 'section'],
+        'publish_online' => ['label' => 'Publish on the online shop', 'type' => 'checkbox', 'col' => 2],
+        'online_price' => ['label' => 'Online price (ex tax)', 'type' => 'decimal', 'min' => 0, 'nullable' => true, 'help' => 'Empty = same as Selling Price.'],
+        'mrp' => ['label' => 'MRP / “was” price (incl. tax)', 'type' => 'decimal', 'min' => 0, 'nullable' => true, 'help' => 'Shown struck through when higher than the shop price.'],
+        'online_stock_cap' => ['label' => 'Show at most (qty online)', 'type' => 'decimal', 'min' => 0, 'nullable' => true, 'help' => 'E.g. 10 while 100 are in stock. Empty = real available stock.'],
+        'brand' => ['label' => 'Brand', 'max' => 80],
+        'min_order_qty' => ['label' => 'Min. order qty', 'type' => 'decimal', 'min' => 0, 'default' => 1],
+        'max_order_qty' => ['label' => 'Max. order qty', 'type' => 'decimal', 'min' => 0, 'nullable' => true],
+        'return_days' => ['label' => 'Return window (days)', 'type' => 'number', 'min' => 0, 'nullable' => true, 'help' => 'Empty = shop default.'],
+        'weight_kg' => ['label' => 'Shipping weight (kg)', 'type' => 'decimal', 'min' => 0, 'nullable' => true],
+        'slug' => ['label' => 'Web address name', 'max' => 160, 'pattern' => '/^[a-z0-9\-]*$/', 'pattern_message' => 'Lower-case letters, digits and dashes.', 'help' => 'Empty = made from the item name.'],
+        'short_description' => ['label' => 'Short description (shown near the price)', 'max' => 300, 'col' => 2],
+        'long_description' => ['label' => 'Full description (product page)', 'type' => 'textarea', 'max' => 10000, 'col' => 2],
+        'attributes' => ['label' => 'Specifications & filters', 'type' => 'textarea', 'max' => 3000, 'col' => 2, 'placeholder' => "Colour: Black\nScreen size: 24 inch\nWarranty: 2 years", 'help' => 'One “Name: value” per line. Shoppers can filter by these.'],
     ],
     'hooks' => [
         'before_save' => static function (array $d): array {
@@ -81,6 +98,14 @@ return [
             }
             foreach (['category_id', 'unit_id', 'tax_rate_id', 'sales_account_id', 'purchase_account_id', 'inventory_account_id'] as $k) {
                 $d[$k] = ($d[$k] ?? '') ?: null;
+            }
+            foreach (['online_price', 'mrp', 'online_stock_cap', 'max_order_qty', 'return_days', 'weight_kg'] as $k) {
+                $d[$k] = ($d[$k] ?? '') === '' || $d[$k] === null ? null : $d[$k];
+            }
+            $d['min_order_qty'] = (float) ($d['min_order_qty'] ?? 1) > 0 ? $d['min_order_qty'] : 1;
+            $d['slug'] = ($d['slug'] ?? '') ?: str_slug((string) $d['name']);
+            foreach (['brand', 'short_description', 'long_description', 'attributes'] as $k) {
+                $d[$k] = ($d[$k] ?? '') === '' ? null : $d[$k];
             }
             return $d;
         },

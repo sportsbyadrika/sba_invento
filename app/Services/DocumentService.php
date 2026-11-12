@@ -459,7 +459,7 @@ final class DocumentService
                 Database::query('UPDATE document_lines SET received_qty = received_qty + ? WHERE id = ?', [$q, $l['id']]);
             }
             $jl[] = [$ap, 0, $total, $d['contact_name'] . ($billRef ? " bill $billRef" : '')];
-            self::journal($d, 'receipt', $jl, 'Goods received ' . $ref . ($freight > 0 ? ' (incl. freight ' . number_format($freight, 2) . ')' : ''), $date);
+            self::journal($d, 'grn', $jl, 'Goods received ' . $ref . ($freight > 0 ? ' (incl. freight ' . number_format($freight, 2) . ')' : ''), $date);
             foreach ($newPrices as $itemId => $price) {
                 if ($price !== '' && is_numeric($price) && (float) $price >= 0) {
                     Database::update('items', ['sales_price' => (float) $price], 'id = ? AND company_id = ?', [(int) $itemId, $cid]);

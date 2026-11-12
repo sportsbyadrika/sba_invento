@@ -207,6 +207,162 @@ final class Installer
                 Database::insert('journal_lines', ['journal_id' => $jid, 'company_id' => $cid, 'line_no' => 2, 'account_id' => $acc($cid, '4100'), 'debit' => 0, 'credit' => 5000, 'debit_base' => 0, 'credit_base' => round(5000 * $rate, 2)]);
             }
         }
+        self::demoCommerce();
         echo "Demo data ready. Sign in with admin / Admin@12345\n";
+    }
+
+    /** Online shop, purchases, stock batches, quotes, invoices, web orders, returns and reviews */
+    private static function demoCommerce(): void
+    {
+        $admin = Database::one("SELECT * FROM users WHERE username = 'admin'");
+        if (!$admin) {
+            return;
+        }
+        if (session_status() !== PHP_SESSION_ACTIVE && !isset($_SESSION)) {
+            $_SESSION = [];
+        }
+        $meta = [
+            'ELC-LAP-14' => ['Lenovo', "Processor: Intel Core i5\nMemory: 16 GB\nScreen size: 14 inch\nColour: Grey\nWarranty: 1 year", 'Thin and light 14" laptop for office and study.', 3690, 10],
+            'ELC-MON-24' => ['Dell', "Screen size: 24 inch\nPanel: IPS\nResolution: Full HD\nColour: Black\nWarranty: 3 years", 'Full HD IPS monitor with slim bezels.', 799, null],
+            'ELC-UPS-1K' => ['APC', "Capacity: 1 kVA\nColour: Black\nWarranty: 2 years", 'Keeps your PC running during power cuts.', null, null],
+            'OFF-A4-500' => ['Double A', "Paper size: A4\nWeight: 80 gsm\nColour: White", 'Smooth A4 copier paper, 500 sheets.', 25, null],
+            'OFF-PEN-BL' => ['Reynolds', "Colour: Blue\nPack: 50 pens", 'Smooth-writing ball pens for daily use.', null, null],
+            'HDW-DRL-18' => ['Bosch', "Voltage: 18 V\nColour: Green\nWarranty: 2 years", 'Cordless drill driver with two batteries.', 499, null],
+            'HDW-CBL-CAT6' => ['D-Link', "Length: 305 m\nColour: Blue\nCategory: CAT6", 'Pure copper CAT6 network cable box.', null, null],
+            'SRV-INST' => [null, "Service: On-site", 'Professional on-site installation by our technician.', null, null],
+        ];
+        $colours = [[8, 145, 178], [99, 102, 241], [16, 185, 129], [245, 158, 11], [244, 63, 94], [20, 184, 166], [139, 92, 246], [100, 116, 139]];
+        foreach (Database::all("SELECT id, code FROM companies WHERE code IN ('HTL','HIN') ORDER BY id") as $co) {
+            $cid = (int) $co['id'];
+            if (Database::value('SELECT COUNT(*) FROM shop_settings WHERE company_id = ?', [$cid])) {
+                continue;
+            }
+            $isUae = $co['code'] === 'HTL';
+            Auth::instance()->actAs($admin, $cid);
+            $f = $isUae ? 1 : 22;
+            Database::insert('shop_settings', [
+                'company_id' => $cid, 'enabled' => 1, 'slug' => $isUae ? 'hallsons' : 'hallsons-india', 'store_name' => $isUae ? 'Hallsons Store' : 'Hallsons India Store',
+                'tagline' => $isUae ? 'Office tech & supplies, delivered across the UAE' : 'Office & home essentials, delivered across India',
+                'contact_email' => $isUae ? 'shop@hallsons.example' : 'shop@hallsons-india.example', 'contact_phone' => $isUae ? '+971 4 000 0000' : '+91 484 000 0000',
+                'delivery_fee' => $isUae ? 15 : 49, 'free_delivery_min' => $isUae ? 200 : 999, 'cod_enabled' => 1, 'cod_max' => $isUae ? 5000 : 50000, 'cod_fee' => 0, 'return_days' => 7,
+                'shipping_policy' => "Orders are delivered within 2-4 working days.\nDelivery is free above the minimum order value.",
+                'returns_policy' => "Unused items can be returned within 7 days of delivery in their original packing.\nRefunds are made to your bank account within 5 working days after we receive the item.",
+                'terms' => 'Prices include tax. Orders are confirmed by phone or e-mail before dispatch.', 'privacy' => 'We use your details only to deliver your orders. We never sell your data.',
+            ]);
+            // ---- publish items with images & specifications
+            $i = 0;
+            foreach (Database::all('SELECT * FROM items WHERE company_id = ?', [$cid]) as $it) {
+                $m = $meta[$it['sku']] ?? null;
+                if (!$m) {
+                    continue;
+                }
+                Database::update('items', ['publish_online' => 1, 'brand' => $m[0], 'attributes' => $m[1], 'short_description' => $m[2], 'long_description' => $m[2] . "\n\nGenuine product with manufacturer warranty. Sold and delivered by Hallsons.",
+                    'mrp' => $m[3] ? $m[3] * $f : null, 'online_stock_cap' => $m[4], 'slug' => str_slug($it['name'])], 'id = ?', [$it['id']]);
+                ItemImages::placeholder($cid, (int) $it['id'], $m[0] ?: $it['sku'], $colours[$i++ % count($colours)]);
+            }
+            // ---- stock: one approved & received purchase order per goods item
+            $vendor = (int) Database::value("SELECT id FROM contacts WHERE company_id = ? AND contact_type = 'vendor' ORDER BY id LIMIT 1", [$cid]);
+            $tax = (int) Database::value('SELECT id FROM tax_rates WHERE company_id = ? AND is_default = 1', [$cid]) ?: null;
+            $goods = Database::all("SELECT * FROM items WHERE company_id = ? AND item_type = 'goods'", [$cid]);
+            $lines = array_map(static fn ($g) => ['item_id' => $g['id'], 'qty' => in_array($g['sku'], ['ELC-LAP-14', 'HDW-DRL-18'], true) ? 25 : 60, 'unit_price' => $g['purchase_price'], 'tax_rate_id' => $tax], $goods);
+            $po = DocumentService::save('po', ['doc_date' => date('Y-m-d', strtotime('-40 days')), 'contact_id' => $vendor, 'reference' => 'VQ-1021'], $lines);
+            Database::update('documents', ['status' => 'open'], 'id = ?', [$po]);
+            $recv = [];
+            foreach (Database::all('SELECT id, qty FROM document_lines WHERE document_id = ?', [$po]) as $l) {
+                $recv[$l['id']] = $l['qty'];
+            }
+            DocumentService::receivePo($po, $recv, 120 * $f, date('Y-m-d', strtotime('-38 days')), 'DN-5521');
+            // a second, still open purchase order
+            $po2 = DocumentService::save('po', ['doc_date' => date('Y-m-d', strtotime('-2 days')), 'due_date' => date('Y-m-d', strtotime('+5 days')), 'contact_id' => $vendor], [['item_id' => $goods[0]['id'], 'qty' => 10, 'unit_price' => $goods[0]['purchase_price'], 'tax_rate_id' => $tax]]);
+            Database::update('documents', ['status' => 'open'], 'id = ?', [$po2]);
+
+            if (!$isUae) {
+                // The client's example: 50 @ 220 (+30 freight) sold at 290, 35 sold, then 50 @ 250 (+10 freight) sold at 350
+                $cat = (int) Database::value("SELECT id FROM item_categories WHERE company_id = ? AND name = 'Office Supplies'", [$cid]);
+                $unit = (int) Database::value("SELECT id FROM units WHERE company_id = ? AND code = 'NOS'", [$cid]);
+                $acc = static fn ($code) => (int) Database::value('SELECT id FROM accounts WHERE company_id = ? AND code = ?', [$cid, $code]);
+                $bottle = Database::insert('items', ['company_id' => $cid, 'sku' => 'HOM-BTL-1L', 'name' => 'Steel Water Bottle 1L', 'slug' => 'steel-water-bottle-1l', 'item_type' => 'goods', 'category_id' => $cat, 'unit_id' => $unit,
+                    'hsn_sac' => '73239390', 'tax_rate_id' => $tax, 'sales_price' => 290, 'purchase_price' => 220, 'sales_account_id' => $acc('4100'), 'purchase_account_id' => $acc('5200'), 'inventory_account_id' => $acc('1140'),
+                    'track_inventory' => 1, 'brand' => 'Milton', 'publish_online' => 1, 'attributes' => "Capacity: 1 litre\nMaterial: Stainless steel\nColour: Silver", 'short_description' => 'Leak-proof stainless steel bottle that keeps water cool for hours.']);
+                ItemImages::placeholder($cid, $bottle, 'MILTON', [71, 85, 105]);
+                $cust = (int) Database::value("SELECT id FROM contacts WHERE company_id = ? AND contact_type = 'customer' ORDER BY id LIMIT 1", [$cid]);
+                $p1 = DocumentService::save('po', ['doc_date' => date('Y-m-d', strtotime('-30 days')), 'contact_id' => $vendor, 'reference' => 'Batch A'], [['item_id' => $bottle, 'qty' => 50, 'unit_price' => 220, 'tax_rate_id' => $tax]]);
+                Database::update('documents', ['status' => 'open'], 'id = ?', [$p1]);
+                DocumentService::receivePo($p1, [(int) Database::value('SELECT id FROM document_lines WHERE document_id = ?', [$p1]) => 50], 30, date('Y-m-d', strtotime('-29 days')), 'A-220', [$bottle => 290]);
+                $inv = DocumentService::save('invoice', ['doc_date' => date('Y-m-d', strtotime('-20 days')), 'due_date' => date('Y-m-d', strtotime('-5 days')), 'contact_id' => $cust], [['item_id' => $bottle, 'qty' => 35, 'unit_price' => 290, 'tax_rate_id' => $tax]]);
+                DocumentService::postInvoice($inv);
+                $p2 = DocumentService::save('po', ['doc_date' => date('Y-m-d', strtotime('-3 days')), 'contact_id' => $vendor, 'reference' => 'Batch B'], [['item_id' => $bottle, 'qty' => 50, 'unit_price' => 250, 'tax_rate_id' => $tax]]);
+                Database::update('documents', ['status' => 'open'], 'id = ?', [$p2]);
+                DocumentService::receivePo($p2, [(int) Database::value('SELECT id FROM document_lines WHERE document_id = ?', [$p2]) => 50], 10, date('Y-m-d', strtotime('-2 days')), 'B-250', [$bottle => 350]);
+                echo "  HIN: bottle batches 15 @ 220.60 + 50 @ 250.20, price now 350\n";
+                continue;
+            }
+
+            // ---- quotes & invoices (UAE)
+            $customers = array_column(Database::all("SELECT id FROM contacts WHERE company_id = ? AND contact_type = 'customer' AND is_active = 1 ORDER BY id LIMIT 4", [$cid]), 'id');
+            $byS = static fn ($sku) => Database::one('SELECT * FROM items WHERE company_id = ? AND sku = ?', [$cid, $sku]);
+            $lap = $byS('ELC-LAP-14');
+            $mon = $byS('ELC-MON-24');
+            $ins = $byS('SRV-INST');
+            $q1 = DocumentService::save('quote', ['doc_date' => date('Y-m-d', strtotime('-6 days')), 'due_date' => date('Y-m-d', strtotime('+24 days')), 'contact_id' => $customers[0], 'terms' => 'Prices valid for 30 days. Delivery within 3 days of order.'],
+                [['item_id' => $lap['id'], 'qty' => 5, 'unit_price' => $lap['sales_price'], 'discount_pct' => 5, 'tax_rate_id' => $tax], ['item_id' => $ins['id'], 'qty' => 5, 'unit_price' => $ins['sales_price'], 'tax_rate_id' => $tax]]);
+            Database::update('documents', ['status' => 'sent'], 'id = ?', [$q1]);
+            $q2 = DocumentService::save('quote', ['doc_date' => date('Y-m-d', strtotime('-3 days')), 'due_date' => date('Y-m-d', strtotime('+27 days')), 'contact_id' => $customers[1]],
+                [['item_id' => $mon['id'], 'qty' => 10, 'unit_price' => $mon['sales_price'], 'tax_rate_id' => $tax]]);
+            Database::update('documents', ['status' => 'accepted'], 'id = ?', [$q2]);
+            $i1 = DocumentService::save('invoice', ['doc_date' => date('Y-m-d', strtotime('-35 days')), 'due_date' => date('Y-m-d', strtotime('-5 days')), 'contact_id' => $customers[2], 'reference' => 'LPO-778'],
+                [['item_id' => $mon['id'], 'qty' => 4, 'unit_price' => $mon['sales_price'], 'tax_rate_id' => $tax]]);
+            DocumentService::postInvoice($i1);
+            $i2 = DocumentService::save('invoice', ['doc_date' => date('Y-m-d', strtotime('-12 days')), 'due_date' => date('Y-m-d', strtotime('+18 days')), 'contact_id' => $customers[3]],
+                [['item_id' => $lap['id'], 'qty' => 2, 'unit_price' => $lap['sales_price'], 'tax_rate_id' => $tax]]);
+            DocumentService::postInvoice($i2);
+            $bank = (int) Database::value("SELECT id FROM accounts WHERE company_id = ? AND sub_type = 'bank' AND is_group = 0 ORDER BY code LIMIT 1", [$cid]);
+            DocumentService::recordPayment($i2, (float) Database::value('SELECT total FROM documents WHERE id = ?', [$i2]), $bank, date('Y-m-d', strtotime('-4 days')), 'TT-55102');
+
+            // ---- online shop customers & orders in every stage
+            $store = Shop::store('hallsons');
+            $people = [['Aisha Rahman', '501234567', 'aisha@example.com', 'Dubai', 'DXB'], ['Rohan Mehta', '552345678', 'rohan@example.com', 'Abu Dhabi', 'AUH'], ['Sara Ali', '563456789', 'sara@example.com', 'Sharjah', 'SHJ']];
+            $custRows = [];
+            foreach ($people as [$name, $phone, $email, $city, $em]) {
+                $cId = Database::insert('shop_customers', ['company_id' => $cid, 'name' => $name, 'phone_code' => '+971', 'phone' => $phone, 'email' => $email, 'password_hash' => Auth::hash('Shop@12345')]);
+                $aId = Database::insert('shop_addresses', ['customer_id' => $cId, 'label' => 'Home', 'name' => $name, 'phone' => "+971 $phone", 'line1' => 'Flat 1203, Marina Heights, Street 4', 'city' => $city, 'region' => $em, 'country' => 'AE', 'is_default' => 1]);
+                $custRows[] = [Database::one('SELECT * FROM shop_customers WHERE id = ?', [$cId]), Database::one('SELECT * FROM shop_addresses WHERE id = ?', [$aId])];
+            }
+            $items = Shop::catalogue($cid);
+            $pick = static fn ($sku) => (int) current(array_filter($items, static fn ($x) => $x['sku'] === $sku))['id'];
+            $orders = [
+                [0, [['ELC-MON-24', 1], ['OFF-A4-500', 4]], 'delivered', true],
+                [1, [['HDW-DRL-18', 1]], 'delivered', false],
+                [2, [['ELC-UPS-1K', 1], ['OFF-PEN-BL', 2]], 'shipped', false],
+                [0, [['ELC-LAP-14', 1]], 'packed', false],
+                [1, [['HDW-CBL-CAT6', 1]], 'confirmed', false],
+                [2, [['OFF-A4-500', 10]], 'placed', false],
+                [1, [['OFF-PEN-BL', 1]], 'cancelled', false],
+            ];
+            foreach ($orders as [$who, $lines, $stage, $withReturn]) {
+                [$c, $a] = $custRows[$who];
+                Shop::cartClear($cid);
+                foreach ($lines as [$sku, $q]) {
+                    Shop::cartSet($cid, $pick($sku), $q);
+                }
+                $oid = Shop::placeOrder($store, $c, $a, 'cod', null);
+                if ($stage === 'cancelled') {
+                    Shop::advance($oid, 'cancelled', ['note' => 'Customer asked to cancel']);
+                } elseif ($stage !== 'placed') {
+                    Shop::advance($oid, $stage, $stage === 'shipped' || $stage === 'delivered' ? ['courier' => 'Aramex', 'tracking_no' => 'AWB' . random_int(100000, 999999)] : []);
+                }
+                if ($stage === 'delivered') {
+                    $o = Shop::order($cid, $oid);
+                    $line = $o['lines'][0];
+                    Database::insert('shop_reviews', ['company_id' => $cid, 'item_id' => $line['item_id'], 'customer_id' => $c['id'], 'order_id' => $oid, 'rating' => $withReturn ? 4 : 5,
+                        'title' => $withReturn ? 'Good value' : 'Excellent quality', 'body' => $withReturn ? 'Works well, delivery was quick.' : 'Exactly as described. Fast delivery and the cash on delivery option is convenient.', 'status' => 'approved', 'created_at' => now_utc()]);
+                    if ($withReturn) {
+                        Shop::requestReturn($store, $c, $o, [$o['lines'][1]['id'] => 1], 'damaged', 'One pack of paper was wet when it arrived.');
+                    }
+                }
+            }
+            Shop::cartClear($cid);
+            echo "  HTL: shop 'hallsons' with 7 web orders, 2 quotes, 2 invoices\n";
+        }
     }
 }

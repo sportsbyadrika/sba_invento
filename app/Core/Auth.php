@@ -95,6 +95,16 @@ final class Auth
         $this->loadCompany($companyId);
     }
 
+    /** Public online shop: company context (prices, taxes, decimals) without any staff user. */
+    public function useCompany(int $companyId): void
+    {
+        $company = Database::one('SELECT * FROM companies WHERE id = ?', [$companyId]);
+        if ($company) {
+            $company['_decimals'] = (int) (Database::value('SELECT decimal_places FROM currencies WHERE company_id = ? AND code = ?', [$companyId, $company['base_currency']]) ?? 2);
+        }
+        $this->company = $company;
+    }
+
     public function check(): bool
     {
         return $this->user !== null;

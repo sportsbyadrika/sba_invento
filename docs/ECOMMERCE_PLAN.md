@@ -1,6 +1,9 @@
 # Online Shop (e-commerce) and stock / pricing design
 
-Status: **proposal for client review**. Nothing in this document is built yet.
+Status: **built (phase 2)**, except the online payment gateway, which shows as "coming soon".
+Defaults used until the client confirms the open decisions (section 2.7): one current price per item, FIFO costing,
+purchase freight = landed cost, a customer delivery fee from shop settings, an online stock **cap**, e-mail login, manual
+tracking numbers, a 7-day return window, and each company's shop at `/store/<name>`.
 
 This covers the client's requests from the 11-Nov-2026 meeting:
 

@@ -247,10 +247,12 @@
   $$('[data-ajax-form]').forEach((form) => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (form.dataset.confirmSubmit && !(await confirmBox(form.dataset.confirmSubmit))) return;
       clearErrors(form);
+      const body = new FormData(form, e.submitter || undefined); // includes the clicked button's name/value
       const btn = $('button[type=submit]', form); if (btn) btn.disabled = true;
       try {
-        const res = await http(form.action, { method: 'POST', body: new FormData(form) });
+        const res = await http(form.action, { method: 'POST', body });
         toast(res.message || 'Saved.');
         if (form.hasAttribute('data-reset-on-success')) form.reset();
         if (res.redirect && form.hasAttribute('data-redirect-on-success')) setTimeout(() => { location.href = res.redirect; }, 400);
@@ -959,6 +961,23 @@
     onCurrency();
     dirty = false;
   }
+
+  // ------------------------------------------------------------------ Online shop behaviours
+  $$('form[data-autosubmit]').forEach((f) => f.addEventListener('change', (e) => { if (e.target.type !== 'number') f.requestSubmit(); }));
+  $$('[data-width]').forEach((el) => { el.style.width = Math.max(0, Math.min(100, +el.dataset.width)) + '%'; });
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-gallery-thumb]');
+    if (!t) return;
+    const g = t.closest('[data-gallery]');
+    $('[data-gallery-main]', g).src = t.dataset.galleryThumb;
+    $$('[data-gallery-thumb]', g).forEach((b) => { b.classList.toggle('border-cyan-600', b === t); b.classList.toggle('border-slate-200', b !== t); });
+  });
+  document.addEventListener('submit', async (e) => {
+    const f = e.target.closest('form[data-confirm-submit]:not([data-ajax-form])');
+    if (!f || f.dataset.confirmed) return;
+    e.preventDefault();
+    if (await confirmBox(f.dataset.confirmSubmit)) { f.dataset.confirmed = '1'; f.requestSubmit(); }
+  });
 
   // ------------------------------------------------------------------ Receive goods: live landed-cost preview
   $$('[data-receive]').forEach((form) => {

@@ -96,6 +96,50 @@ final class App
         $r->get('/install', [\App\Controllers\InstallController::class, 'show']);
         $r->post('/install', [\App\Controllers\InstallController::class, 'run']);
 
+        // Public online shop (customer accounts, separate session cookie)
+        $S = \App\Controllers\StoreController::class;
+        $st = '/store/{shop:[a-z0-9][a-z0-9\-]*}';
+        $r->get($st, [$S, 'index']);
+        $r->get("$st/item/{item:\d+[a-z0-9\-]*}", [$S, 'product']);
+        $r->post("$st/cart/add", [$S, 'cartAdd']);
+        $r->get("$st/cart", [$S, 'cart']);
+        $r->post("$st/cart/update", [$S, 'cartUpdate']);
+        $r->get("$st/checkout", [$S, 'checkout']);
+        $r->post("$st/checkout", [$S, 'placeOrder']);
+        $r->get("$st/login", [$S, 'loginForm']);
+        $r->post("$st/login", [$S, 'login']);
+        $r->get("$st/register", [$S, 'registerForm']);
+        $r->post("$st/register", [$S, 'register']);
+        $r->post("$st/logout", [$S, 'logout']);
+        $r->get("$st/forgot", [$S, 'forgotForm']);
+        $r->post("$st/forgot", [$S, 'forgot']);
+        $r->get("$st/reset/{token:[a-f0-9]+}", [$S, 'resetForm']);
+        $r->post("$st/reset/{token:[a-f0-9]+}", [$S, 'reset']);
+        $r->get("$st/account", [$S, 'account']);
+        $r->get("$st/account/addresses", [$S, 'addresses']);
+        $r->post("$st/account/addresses", [$S, 'addressSave']);
+        $r->post("$st/account/addresses/delete/{id:\d+}", [$S, 'addressDelete']);
+        $num = '{number:[A-Za-z0-9\-]+}';
+        $r->get("$st/account/orders/$num/invoice", [$S, 'invoice']);
+        $r->get("$st/account/orders/$num", [$S, 'order']);
+        $r->post("$st/account/orders/$num/cancel", [$S, 'cancel']);
+        $r->post("$st/account/orders/$num/return", [$S, 'returnRequest']);
+        $r->post("$st/account/orders/$num/review", [$S, 'review']);
+        $r->get("$st/page/{page:terms|privacy|returns|shipping}", [$S, 'page']);
+
+        // Online shop - staff screens
+        $H = \App\Controllers\ShopAdminController::class;
+        $r->get('/shop/orders/{id:\d+}', [$H, 'order'], $auth);
+        $r->post('/shop/orders/{id:\d+}/advance', [$H, 'advance'], $auth);
+        $r->get('/shop/orders/{id:\d+}/packing-slip', [$H, 'packingSlip'], $auth);
+        $r->get('/shop/returns/{id:\d+}', [$H, 'returnShow'], $auth);
+        $r->post('/shop/returns/{id:\d+}/process', [$H, 'returnProcess'], $auth);
+        $r->get('/shop/settings', [$H, 'settings'], ['auth', 'admin']);
+        $r->post('/shop/settings', [$H, 'saveSettings'], ['auth', 'admin']);
+        $r->get('/inventory/items/{id:\d+}/images', [$H, 'images'], $auth);
+        $r->post('/inventory/items/{id:\d+}/images', [$H, 'uploadImages'], $auth);
+        $r->post('/inventory/items/{id:\d+}/images/{img:\d+}/{op:main|delete}', [$H, 'imageOp'], $auth);
+
         $r->get('/dashboard', [DashboardController::class, 'index'], $auth);
         $r->post('/switch-company', [ProfileController::class, 'switchCompany'], $auth);
         $r->get('/profile', [ProfileController::class, 'index'], $auth);
@@ -212,6 +256,12 @@ final class App
             json_out(['ok' => false, 'message' => $message], $status);
         }
         try {
+            $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+            if (preg_match('#/store/([a-z0-9\-]+)#', $path, $m)) { // public shop: customer-friendly page
+                echo View::render('errors/store', ['status' => $status, 'message' => $message, 'title' => "Error $status",
+                    'home' => \App\Services\Shop::store($m[1]) ? url('/store/' . $m[1]) : null], null);
+                return;
+            }
             echo View::render('errors/error', ['status' => $status, 'message' => $message, 'title' => "Error $status"], Auth::instance()->check() ? 'app' : 'auth');
         } catch (\Throwable $e) {
             error_log((string) $e);

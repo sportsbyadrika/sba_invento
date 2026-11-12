@@ -8,3 +8,5 @@
 .DS_Store
 .idea/
 .vscode/
+/public/uploads/*
+!/public/uploads/.htaccess
