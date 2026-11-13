@@ -21,7 +21,7 @@ return [
     'drawer_width' => 'max-w-3xl',
     'columns' => [
         'sku' => ['label' => 'SKU', 'sql' => 't.sku', 'format' => 'code'],
-        'name' => ['label' => 'Item Name', 'sql' => 't.name', 'render' => static fn ($r) => '<span class="font-medium text-slate-900">' . e($r['name']) . '</span>' . ($r['barcode'] ? '<span class="block font-mono text-[11px] text-slate-400">' . e($r['barcode']) . '</span>' : '')],
+        'name' => ['label' => 'Item Name', 'sql' => 't.name', 'render' => static fn ($r) => '<span class="flex items-center gap-2"><span class="size-9 shrink-0 overflow-hidden rounded-md bg-slate-100">' . ($r['thumb'] ? '<img src="' . e(upload_url($r['thumb'])) . '" alt="" loading="lazy" class="size-full object-cover">' : '') . '</span><span><span class="font-medium text-slate-900">' . e($r['name']) . '</span>' . ($r['barcode'] ? '<span class="block font-mono text-[11px] text-slate-400">' . e($r['barcode']) . '</span>' : '') . '</span></span>'],
         'item_type' => ['label' => 'Type', 'sql' => 't.item_type', 'format' => 'badge', 'map' => ['goods' => ['Goods', 'cyan'], 'service' => ['Service', 'violet']]],
         'category' => ['label' => 'Category', 'sql' => 'c.name'],
         'unit' => ['label' => 'Unit', 'sql' => 'u.code', 'format' => 'code'],
@@ -34,7 +34,7 @@ return [
         'online' => ['label' => 'Online', 'sql' => 't.publish_online', 'render' => static fn ($r) => '<a class="inline-flex items-center gap-1 text-xs font-semibold ' . ($r['online'] ? 'text-violet-700' : 'text-slate-400') . ' hover:underline" href="' . e(url('/inventory/items/' . $r['__id'] . '/images')) . '">' . ($r['online'] ? 'Published' : 'Hidden') . ' · ' . (int) $r['images'] . ' img</a>'],
         'is_active' => ['label' => 'Status', 'sql' => 't.is_active', 'format' => 'status'],
     ],
-    'select_extra' => ['barcode' => 't.barcode', 'track_inventory' => 't.track_inventory', 'images' => '(SELECT COUNT(*) FROM item_images im WHERE im.item_id = t.id)'],
+    'select_extra' => ['barcode' => 't.barcode', 'track_inventory' => 't.track_inventory', 'images' => '(SELECT COUNT(*) FROM item_images im WHERE im.item_id = t.id)', 'thumb' => '(SELECT im.thumb FROM item_images im WHERE im.item_id = t.id ORDER BY im.is_main DESC, im.sort_order, im.id LIMIT 1)'],
     'default_sort' => ['name', 'asc'],
     'search' => ['t.sku', 't.name', 't.barcode', 't.hsn_sac', 'c.name'],
     'filters' => [
@@ -75,6 +75,8 @@ return [
         'opening_stock' => ['label' => 'Opening Stock (qty)', 'type' => 'decimal', 'min' => 0, 'create_only' => true, 'help' => 'Only when creating the item - later stock comes from purchase orders.'],
         'description' => ['label' => 'Internal description', 'type' => 'textarea', 'max' => 500, 'col' => 2],
         'is_active' => ['label' => 'Active', 'type' => 'checkbox', 'default' => 1],
+        'section_images' => ['label' => 'Product images (shown in the online shop)', 'type' => 'section'],
+        'images' => ['label' => 'Images', 'type' => 'images', 'virtual' => true, 'col' => 2],
         'section_online' => ['label' => 'Online shop', 'type' => 'section'],
         'publish_online' => ['label' => 'Publish on the online shop', 'type' => 'checkbox', 'col' => 2],
         'online_price' => ['label' => 'Online price (ex tax)', 'type' => 'decimal', 'min' => 0, 'nullable' => true, 'help' => 'Empty = same as Selling Price.'],

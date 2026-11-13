@@ -21,6 +21,9 @@ final class ItemImages
 
     public static function upload(int $cid, int $itemId, array $file, string $alt = ''): int
     {
+        if (in_array($file['error'] ?? 0, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+            throw new ValidationException([], 'The image is larger than the server allows (' . ini_get('upload_max_filesize') . '). Crop it, or raise upload_max_filesize in cPanel → MultiPHP INI Editor.');
+        }
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'] ?? '')) {
             throw new ValidationException([], 'The image could not be uploaded (' . ($file['name'] ?? 'file') . ').');
         }

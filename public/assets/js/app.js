@@ -210,6 +210,7 @@
     bind() {
       const form = $('[data-drawer-form]', this.body);
       if (!form) return;
+      $$('[data-image-manager]', form).forEach((el) => initImageManager(el, form, () => { this.dirty = true; }));
       const first = focusables(form).find((x) => x.type !== 'submit');
       setTimeout(() => { first?.focus(); first?.select?.(); }, 220);
       form.addEventListener('input', () => { this.dirty = true; });
@@ -220,6 +221,7 @@
         clearErrors(form);
         try {
           const res = await http(form.action, { method: 'POST', body: new FormData(form) });
+          if (form._afterSave) await form._afterSave(res); // e.g. upload images queued while creating an item
           toast(res.message || 'Saved.');
           this.dirty = false;
           if (this.onSaved) this.onSaved(res);
@@ -242,6 +244,181 @@
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-drawer-close]') || e.target.matches('[data-drawer-backdrop]')) Drawer.close();
   });
+
+  // ------------------------------------------------------------------ Product images: choose, crop, upload (item form)
+  let cropperLoad = null;
+  function loadCropper(vendor) {
+    if (window.Cropper) return Promise.resolve();
+    cropperLoad ||= new Promise((resolve, reject) => {
+      const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = vendor + '/cropper.min.css'; document.head.appendChild(css);
+      const js = document.createElement('script'); js.src = vendor + '/cropper.min.js'; js.onload = resolve; js.onerror = () => reject(new Error('Could not load the image cropper.')); document.head.appendChild(js);
+    });
+    return cropperLoad;
+  }
+
+  /** Crop dialog. Resolves with a Blob (cropped JPEG), the original File ("use whole image"), or null (skipped). */
+  function cropImage(file, index, total) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const box = document.createElement('div');
+      box.className = 'fixed inset-0 z-[95] flex items-center justify-center bg-slate-900/70 p-3';
+      box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Crop image');
+      const ratios = [['1:1', 1, 'Square (shop)'], ['4:3', 4 / 3, '4:3'], ['3:4', 3 / 4, '3:4'], ['free', NaN, 'Free']];
+      box.innerHTML = `<div class="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
+          <h2 class="text-sm font-bold text-slate-900">Crop image ${total > 1 ? `${index + 1} of ${total}` : ''} <span class="ml-1 font-normal text-slate-500">${esc(file.name)}</span></h2>
+          <button type="button" class="btn btn-ghost btn-sm" data-c="skip" title="Skip this image">Skip</button>
+        </div>
+        <div class="min-h-0 flex-1 bg-slate-100"><div class="h-[55vh]"><img alt="" class="block max-w-full" data-c-img></div></div>
+        <div class="flex flex-wrap items-center gap-1.5 border-t border-slate-200 px-4 py-2.5">
+          <span class="mr-1 text-xs font-semibold text-slate-500">Shape</span>
+          ${ratios.map(([k, , l], i) => `<button type="button" class="btn btn-sm ${i === 0 ? 'is-active' : ''}" data-ratio="${k}">${l}</button>`).join('')}
+          <span class="mx-1 h-5 w-px bg-slate-200"></span>
+          <button type="button" class="btn btn-sm" data-c="rotl" title="Rotate left">⟲</button>
+          <button type="button" class="btn btn-sm" data-c="rotr" title="Rotate right">⟳</button>
+          <button type="button" class="btn btn-sm" data-c="zin" title="Zoom in">+</button>
+          <button type="button" class="btn btn-sm" data-c="zout" title="Zoom out">−</button>
+          <button type="button" class="btn btn-sm" data-c="reset">Reset</button>
+          <span class="ml-auto flex gap-1.5">
+            <button type="button" class="btn btn-sm" data-c="whole" title="Upload without cropping">Use whole image</button>
+            <button type="button" class="btn btn-primary btn-sm" data-c="crop">Crop & use</button>
+          </span>
+        </div></div>`;
+      document.body.appendChild(box);
+      const img = $('[data-c-img]', box);
+      let cropper = null;
+      const done = (v) => { cropper?.destroy(); URL.revokeObjectURL(url); box.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
+      const onKey = (e) => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(null); }
+        if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); $('[data-c="crop"]', box).click(); }
+      };
+      document.addEventListener('keydown', onKey, true);
+      img.onload = () => {
+        cropper = new window.Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.95, background: false, responsive: true, checkOrientation: true });
+      };
+      img.src = url;
+      box.addEventListener('click', (e) => {
+        const r = e.target.closest('[data-ratio]');
+        if (r && cropper) {
+          $$('[data-ratio]', box).forEach((b) => b.classList.toggle('is-active', b === r));
+          cropper.setAspectRatio(ratios.find((x) => x[0] === r.dataset.ratio)[1]);
+          return;
+        }
+        const c = e.target.closest('[data-c]')?.dataset.c;
+        if (!c) return;
+        if (c === 'skip') return done(null);
+        if (c === 'whole') { // keep the whole picture but shrink it (shared hosts often limit uploads to 2 MB)
+          const sc = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
+          const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
+          const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(img, 0, 0, cv.width, cv.height);
+          cv.toBlob((blob) => done(blob || file), 'image/jpeg', 0.92);
+          return;
+        }
+        if (!cropper) return;
+        if (c === 'rotl') cropper.rotate(-90);
+        if (c === 'rotr') cropper.rotate(90);
+        if (c === 'zin') cropper.zoom(0.1);
+        if (c === 'zout') cropper.zoom(-0.1);
+        if (c === 'reset') cropper.reset();
+        if (c === 'crop') {
+          const canvas = cropper.getCroppedCanvas({ maxWidth: 2000, maxHeight: 2000, fillColor: '#fff', imageSmoothingQuality: 'high' });
+          canvas.toBlob((blob) => done(blob), 'image/jpeg', 0.92);
+        }
+      });
+    });
+  }
+
+  function initImageManager(root, form, markDirty) {
+    let images = JSON.parse($('[data-images]', root).textContent || '[]');
+    const pending = []; // {blob, url} for an item that is not saved yet
+    const grid = $('[data-image-grid]', root);
+    const input = $('[data-image-input]', root);
+    const max = +root.dataset.max || 12;
+    const readonly = root.hasAttribute('data-readonly');
+    const itemUrl = (id) => root.dataset.url.replace('{id}', id);
+    let busy = false;
+
+    function render() {
+      const saved = images.map((im, i) => `<figure class="group relative overflow-hidden rounded-lg border ${i === 0 ? 'border-cyan-600 ring-2 ring-cyan-600/25' : 'border-slate-200'} bg-white">
+          <img src="${esc(im.thumb)}" alt="" class="aspect-square w-full object-cover">
+          ${i === 0 ? '<span class="absolute top-1 left-1 badge badge-cyan">Main</span>' : ''}
+          ${readonly ? '' : `<figcaption class="flex items-center justify-between gap-1 border-t border-slate-100 px-1 py-1 text-xs">
+            <span class="flex gap-0.5"><button type="button" class="btn btn-ghost btn-sm px-1.5 py-0.5" data-op="left" data-id="${im.id}" ${i === 0 ? 'disabled' : ''} title="Move left">‹</button><button type="button" class="btn btn-ghost btn-sm px-1.5 py-0.5" data-op="right" data-id="${im.id}" ${i === images.length - 1 ? 'disabled' : ''} title="Move right">›</button></span>
+            ${i === 0 ? '' : `<button type="button" class="font-semibold text-cyan-700" data-op="main" data-id="${im.id}" title="Show this image first in the shop">Set as main</button>`}
+            <button type="button" class="font-semibold text-rose-600" data-op="delete" data-id="${im.id}" title="Delete">✕</button></figcaption>`}
+        </figure>`).join('');
+      const queued = pending.map((p, i) => `<figure class="relative overflow-hidden rounded-lg border border-dashed border-amber-400 bg-white">
+          <img src="${p.url}" alt="" class="aspect-square w-full object-cover opacity-90">
+          <span class="absolute top-1 left-1 badge badge-amber">${!images.length && i === 0 ? 'Main · ' : ''}Not saved yet</span>
+          <figcaption class="flex justify-end border-t border-slate-100 px-1 py-1 text-xs"><button type="button" class="font-semibold text-rose-600" data-pending="${i}">Remove</button></figcaption>
+        </figure>`).join('');
+      grid.innerHTML = saved + queued;
+      const n = images.length + pending.length;
+      $('[data-image-count]', root).textContent = n ? `${n} / ${max} images` : 'No images yet';
+      grid.classList.toggle('hidden', n === 0);
+    }
+
+    async function upload(itemId, blobs) {
+      const fd = new FormData();
+      blobs.forEach((b, i) => fd.append('images[]', b, b.name || `image-${Date.now()}-${i}.jpg`));
+      const res = await http(itemUrl(itemId), { method: 'POST', body: fd });
+      images = res.images;
+      return res;
+    }
+
+    async function addFiles(files) {
+      if (readonly || busy) return;
+      files = [...files].filter((f) => /^image\/(jpeg|png|webp)$/.test(f.type));
+      if (!files.length) { toast('Choose JPEG, PNG or WebP images.', 'error'); return; }
+      const room = max - images.length - pending.length;
+      if (room <= 0) { toast(`An item can have up to ${max} images.`, 'error'); return; }
+      if (files.length > room) { toast(`Only ${room} more image(s) can be added - the rest were skipped.`, 'info'); files = files.slice(0, room); }
+      const big = files.filter((f) => f.size > 8 * 1024 * 1024);
+      if (big.length) { toast(`${big.length} image(s) are larger than 8 MB and were skipped.`, 'error'); files = files.filter((f) => f.size <= 8 * 1024 * 1024); }
+      try { await loadCropper(root.dataset.vendor); } catch (err) { toast(err.message, 'error'); return; }
+      const ready = [];
+      for (let i = 0; i < files.length; i++) {
+        const out = await cropImage(files[i], i, files.length);
+        if (out) ready.push(out);
+      }
+      if (!ready.length) return;
+      if (root.dataset.itemId) {
+        busy = true; root.classList.add('opacity-60');
+        try { const res = await upload(root.dataset.itemId, ready); toast(res.message); } catch (err) { if (err.data?.images) images = err.data.images; toast(err.message, 'error'); }
+        finally { busy = false; root.classList.remove('opacity-60'); render(); }
+      } else {
+        ready.forEach((b) => pending.push({ blob: b, url: URL.createObjectURL(b) }));
+        markDirty(); render();
+      }
+    }
+
+    if (!readonly) {
+      input.addEventListener('change', () => { addFiles(input.files); input.value = ''; });
+      const drop = $('[data-image-drop]', root);
+      ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('border-cyan-500', 'bg-cyan-50'); }));
+      ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('border-cyan-500', 'bg-cyan-50'); }));
+      drop.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+      grid.addEventListener('click', async (e) => {
+        const pi = e.target.closest('[data-pending]');
+        if (pi) { const [p] = pending.splice(+pi.dataset.pending, 1); URL.revokeObjectURL(p.url); render(); return; }
+        const b = e.target.closest('[data-op]');
+        if (!b || busy) return;
+        if (b.dataset.op === 'delete' && !(await confirmBox('Delete this image? It is removed from the online shop.'))) return;
+        busy = true;
+        try { const res = await http(`${itemUrl(root.dataset.itemId)}/${b.dataset.id}/${b.dataset.op}`, { method: 'POST' }); images = res.images; }
+        catch (err) { toast(err.message, 'error'); }
+        finally { busy = false; render(); }
+      });
+      // new item: upload the queued images right after the item is created
+      form._afterSave = async (res) => {
+        if (!pending.length || !res.id) return;
+        try { await upload(res.id, pending.map((p) => p.blob)); }
+        catch (err) { toast('The item was saved, but the images could not be uploaded: ' + err.message, 'error'); }
+        pending.splice(0).forEach((p) => URL.revokeObjectURL(p.url));
+      };
+    }
+    render();
+  }
 
   // ------------------------------------------------------------------ AJAX forms (profile, company settings)
   $$('[data-ajax-form]').forEach((form) => {

@@ -47,7 +47,22 @@ $value = static function (string $name, array $f) use ($row) {
           $span = ($f['col'] ?? 1) === 2 || in_array($type, ['textarea', 'multiselect'], true) ? 'sm:col-span-2' : '';
           $req = !empty($f['required']) && !is_callable($f['required']);
       ?>
-        <?php if ($type === 'section'): ?>
+        <?php if ($type === 'images'): $imgs = $isEdit ? App\Controllers\ShopAdminController::imageList((int) $row[$c['pk']]) : []; ?>
+          <div class="sm:col-span-2" data-image-manager data-item-id="<?= $isEdit ? (int) $row[$c['pk']] : '' ?>" data-url="<?= e(url('/inventory/items/{id}/images')) ?>"
+               data-vendor="<?= e(base_path_url() . '/assets/vendor/cropperjs') ?>" data-max="12" <?= $readonly ? 'data-readonly' : '' ?>>
+            <script type="application/json" data-images><?= json_encode($imgs, JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+            <div class="flex items-center justify-between"><span class="label"><?= e($f['label']) ?></span><span class="text-xs text-slate-500" data-image-count></span></div>
+            <div class="grid grid-cols-3 gap-2 sm:grid-cols-4" data-image-grid></div>
+            <?php if (!$readonly): ?>
+            <label class="mt-2 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-center text-sm text-slate-600 transition hover:border-cyan-500 hover:bg-cyan-50/50" data-image-drop>
+              <?= icon('image', 'size-6 text-slate-400') ?>
+              <span><span class="font-semibold text-cyan-700">Choose images</span> or drop them here - you can crop each one</span>
+              <input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp" multiple data-image-input>
+            </label>
+            <p class="help">JPEG, PNG or WebP up to 8 MB, max 12 per item. Square crops look best in the shop. The first image is the main image.<?= $isEdit ? '' : ' Images are uploaded when you save the item.' ?></p>
+            <?php endif; ?>
+          </div>
+        <?php elseif ($type === 'section'): ?>
           <div class="pt-3 sm:col-span-2"><div class="section-title border-b border-slate-100 pb-1.5"><?= e($f['label']) ?></div></div>
         <?php elseif ($type === 'checkbox'): ?>
           <div class="<?= $span ?> flex items-center pt-1">
