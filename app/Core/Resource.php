@@ -310,7 +310,7 @@ final class Resource
         $data = [];
         foreach ($this->c['fields'] as $name => $f) {
             $type = $f['type'] ?? 'text';
-            if ($type === 'section') {
+            if ($type === 'section' || $type === 'images') {
                 continue;
             }
             if ($existing && !empty($f['create_only'])) {

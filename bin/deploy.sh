@@ -30,7 +30,9 @@ done
 
 # 2. Copy the code. Without -t, changed files get a fresh modification time, so LiteSpeed and
 #    OPcache notice them immediately; --checksum copies only files whose content changed.
-/usr/bin/rsync -rlp --checksum --delete \
+#    --chmod: NEVER copy the repository's permissions. cPanel creates the repository folder as private
+#    (0700/0750); copying that onto the site folder locks the web server out and LiteSpeed answers 404.
+/usr/bin/rsync -rlp --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --checksum --delete \
     --exclude='.git/' --exclude='.gitignore' --exclude='.cpanel.yml' \
     --exclude='node_modules/' --exclude='resources/' --exclude='scripts/' --exclude='docs/' \
     --exclude='package.json' --exclude='package-lock.json' --exclude='hallsons.htm' \
@@ -51,7 +53,11 @@ for f in $HTFILES; do
     fi
 done
 
-# 4. Writable folders and their protection
+# 4. The site folder and document root must be reachable by the web server (cPanel normally uses 0755)
+chmod 755 "$DEST" "$DEST/public"
+chmod 755 "$DEST/public/assets" 2>/dev/null || true
+
+# 5. Writable folders and their protection
 mkdir -p "$DEST/storage/logs" "$DEST/storage/mail" "$DEST/storage/cache"
 chmod 755 "$DEST/storage" "$DEST/storage/logs" "$DEST/storage/mail" "$DEST/storage/cache"
 cp -f "$REPO/storage/.htaccess" "$DEST/storage/.htaccess"
@@ -60,7 +66,7 @@ mkdir -p "$DEST/public/uploads"
 chmod 755 "$DEST/public/uploads"
 cp -f "$REPO/public/uploads/.htaccess" "$DEST/public/uploads/.htaccess"
 
-# 5. Record what is deployed (shown on System Health)
+# 6. Record what is deployed (shown on System Health)
 {
     echo "commit=$(git -C "$REPO" rev-parse --short HEAD 2>/dev/null || echo unknown)"
     echo "branch=$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
@@ -68,3 +74,4 @@ cp -f "$REPO/public/uploads/.htaccess" "$DEST/public/uploads/.htaccess"
 } > "$DEST/storage/deployed.txt"
 
 echo "Deployed $(cat "$DEST/storage/deployed.txt" | tr '\n' ' ')"
+echo "Permissions: $(stat -c '%a' "$DEST") $DEST, $(stat -c '%a' "$DEST/public") $DEST/public (both must be 755)"

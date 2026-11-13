@@ -138,7 +138,7 @@ final class App
         $r->post('/shop/settings', [$H, 'saveSettings'], ['auth', 'admin']);
         $r->get('/inventory/items/{id:\d+}/images', [$H, 'images'], $auth);
         $r->post('/inventory/items/{id:\d+}/images', [$H, 'uploadImages'], $auth);
-        $r->post('/inventory/items/{id:\d+}/images/{img:\d+}/{op:main|delete}', [$H, 'imageOp'], $auth);
+        $r->post('/inventory/items/{id:\d+}/images/{img:\d+}/{op:main|delete|left|right}', [$H, 'imageOp'], $auth);
 
         $r->get('/dashboard', [DashboardController::class, 'index'], $auth);
         $r->post('/switch-company', [ProfileController::class, 'switchCompany'], $auth);
@@ -239,7 +239,7 @@ final class App
         header('X-Content-Type-Options: nosniff');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-        header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'");
+        header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'");
         $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
         if ($https) {
             header('Strict-Transport-Security: max-age=31536000; includeSubDomains');

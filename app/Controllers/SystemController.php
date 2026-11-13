@@ -51,6 +51,12 @@ final class SystemController
         }
         $add('PHP', 'memory_limit / max_execution_time', ini_get('memory_limit') . ' / ' . ini_get('max_execution_time') . 's');
         $add('PHP', 'realpath_cache_size', (string) ini_get('realpath_cache_size'));
+        $toBytes = static fn (string $v) => (int) $v * (['k' => 1024, 'm' => 1048576, 'g' => 1073741824][strtolower(substr(trim($v), -1))] ?? 1);
+        $up = ini_get('upload_max_filesize') . ' / post ' . ini_get('post_max_size');
+        $add('PHP', 'upload_max_filesize / post_max_size', $up, $toBytes((string) ini_get('upload_max_filesize')) >= 4194304 ? 'ok' : 'warn',
+            'Product images are shrunk in the browser to about 1 MB, but 8M / 32M is recommended (cPanel → MultiPHP INI Editor).');
+        $add('PHP', 'GD image library (product images)', extension_loaded('gd') ? 'enabled' . (function_exists('imagewebp') ? ' · WebP' : ' · no WebP (JPEG used)') : 'missing', extension_loaded('gd') ? 'ok' : 'bad',
+            'Enable "gd" in cPanel → Select PHP Version → Extensions.');
 
         // ---- Database
         $c = config('db');

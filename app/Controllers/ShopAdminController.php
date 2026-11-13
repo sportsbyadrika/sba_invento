@@ -152,6 +152,22 @@ final class ShopAdminController
             'live' => Shop::catalogue($cid, [(int) $item['id']])[(int) $item['id']] ?? null]);
     }
 
+    /** Current images as JSON for the item form's image manager */
+    public static function imageList(int $itemId): array
+    {
+        return array_map(static fn ($im) => ['id' => (int) $im['id'], 'thumb' => upload_url($im['thumb']), 'url' => upload_url($im['file']), 'is_main' => (int) $im['is_main'] === 1],
+            Database::all('SELECT * FROM item_images WHERE item_id = ? ORDER BY is_main DESC, sort_order, id', [$itemId]));
+    }
+
+    private function imagesDone(array $item, string $message): never
+    {
+        if (is_ajax()) {
+            json_out(['ok' => true, 'message' => $message, 'images' => self::imageList((int) $item['id'])]);
+        }
+        Session::flash('success', $message);
+        redirect('/inventory/items/' . $item['id'] . '/images');
+    }
+
     public function uploadImages(string $id): never
     {
         $item = $this->item((int) $id, 'edit');
@@ -172,23 +188,45 @@ final class ShopAdminController
                 $n++;
             }
         } catch (ValidationException $v) {
+            if (is_ajax()) {
+                json_out(['ok' => false, 'message' => $v->getMessage(), 'images' => self::imageList((int) $item['id'])], 422);
+            }
             Session::flash('error', $v->getMessage());
             redirect('/inventory/items/' . $item['id'] . '/images');
         }
-        Session::flash('success', $n ? "$n image(s) uploaded." : 'No image was selected.');
-        redirect('/inventory/items/' . $item['id'] . '/images');
+        Audit::log('item_images', $item['id'], 'upload', null, ['count' => $n]);
+        $this->imagesDone($item, $n ? "$n image(s) uploaded." : 'No image was selected.');
     }
 
     public function imageOp(string $id, string $img, string $op): never
     {
         $item = $this->item((int) $id, 'edit');
-        if ($op === 'delete') {
-            ItemImages::delete((int) $item['company_id'], (int) $img);
-            Session::flash('success', 'Image deleted.');
-        } else {
-            Database::query('UPDATE item_images SET is_main = (id = ?) WHERE item_id = ?', [(int) $img, $item['id']]);
-            Session::flash('success', 'Main image changed.');
+        $imgId = (int) $img;
+        if (!Database::value('SELECT id FROM item_images WHERE id = ? AND item_id = ?', [$imgId, $item['id']])) {
+            throw new HttpException(404, 'Image not found.');
         }
-        redirect('/inventory/items/' . $item['id'] . '/images');
+        switch ($op) {
+            case 'delete':
+                ItemImages::delete((int) $item['company_id'], $imgId);
+                $msg = 'Image deleted.';
+                break;
+            case 'main':
+                Database::query('UPDATE item_images SET is_main = (id = ?) WHERE item_id = ?', [$imgId, $item['id']]);
+                $msg = 'Main image changed.';
+                break;
+            default: // left / right: move in the gallery order
+                $ids = array_map(static fn ($r) => (int) $r['id'], Database::all('SELECT id FROM item_images WHERE item_id = ? ORDER BY is_main DESC, sort_order, id', [$item['id']]));
+                $pos = array_search($imgId, $ids, true);
+                $to = $op === 'left' ? $pos - 1 : $pos + 1;
+                if ($to >= 0 && $to < count($ids)) {
+                    [$ids[$pos], $ids[$to]] = [$ids[$to], $ids[$pos]];
+                    // the first image in the gallery is the main image
+                    foreach ($ids as $n => $iid) {
+                        Database::update('item_images', ['sort_order' => $n + 1, 'is_main' => $n === 0 ? 1 : 0], 'id = ?', [$iid]);
+                    }
+                }
+                $msg = 'Order changed.';
+        }
+        $this->imagesDone($item, $msg);
     }
 }
