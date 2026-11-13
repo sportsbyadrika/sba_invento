@@ -120,6 +120,7 @@ final class ShopAdminController
             'contact_email' => mb_substr(trim((string) ($in['contact_email'] ?? '')), 0, 150) ?: null, 'contact_phone' => mb_substr(trim((string) ($in['contact_phone'] ?? '')), 0, 40) ?: null,
             'delivery_fee' => $num('delivery_fee') ?? 0, 'free_delivery_min' => $num('free_delivery_min'),
             'cod_enabled' => !empty($in['cod_enabled']) ? 1 : 0, 'cod_max' => $num('cod_max'), 'cod_fee' => $num('cod_fee') ?? 0,
+            'show_name' => !empty($in['show_name']) ? 1 : 0,
             'return_days' => max(0, min(365, (int) ($in['return_days'] ?? 7))), 'low_stock_badge' => max(0, min(1000, (int) ($in['low_stock_badge'] ?? 5))),
         ];
         foreach (['terms', 'privacy', 'returns_policy', 'shipping_policy'] as $k) {
@@ -132,6 +133,36 @@ final class ShopAdminController
         }
         Audit::log('shop_settings', $cid, 'update', null, $data);
         json_out(['ok' => true, 'message' => 'Shop settings saved.' . ($data['enabled'] ? ' Your store is live at /store/' . $slug : ' The store is offline.')]);
+    }
+
+    /** Shop logo / browser-tab icon upload (ajax) and removal */
+    public function brand(string $kind, ?string $op = null): never
+    {
+        $cid = (int) Auth::instance()->companyId();
+        try {
+            if ($op === 'remove') {
+                \App\Services\ShopBranding::remove($cid, $kind);
+            } else {
+                \App\Services\ShopBranding::upload($cid, $kind, $_FILES['image'] ?? []);
+            }
+        } catch (ValidationException $v) {
+            if (is_ajax()) {
+                json_out(['ok' => false, 'message' => $v->getMessage()], 422);
+            }
+            Session::flash('error', $v->getMessage());
+            redirect('/shop/settings');
+        }
+        Audit::log('shop_settings', $cid, $kind . ($op === 'remove' ? '_removed' : '_uploaded'));
+        $msg = match (true) {
+            $kind === 'logo' => $op === 'remove' ? 'Logo removed.' : 'Logo saved.',
+            $op === 'remove' => 'The browser icon is now made from the logo.',
+            default => 'Browser icon saved.',
+        };
+        if (is_ajax()) {
+            json_out(['ok' => true, 'message' => $msg]);
+        }
+        Session::flash('success', $msg);
+        redirect('/shop/settings');
     }
 
     // ------------------------------------------------------------------ item images

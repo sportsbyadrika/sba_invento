@@ -6,6 +6,41 @@
   </div>
   <?php if ($s['enabled']): ?><a class="btn" href="<?= e(url('/store/' . $s['slug'])) ?>" target="_blank" rel="noopener"><?= icon('external-link', 'size-4') ?>Open store</a><?php endif; ?>
 </div>
+<?php $vendor = base_path_url() . '/assets/vendor/cropperjs'; $saved = !empty($s['updated_at']) || isset($s['logo']); ?>
+<section class="card mb-4 max-w-4xl p-5">
+  <h2 class="font-bold text-slate-900">Branding</h2>
+  <p class="text-sm text-slate-500">Shown in the shop header and in the browser tab. PNG with a transparent background works best.</p>
+  <div class="mt-4 grid gap-4 sm:grid-cols-2">
+    <div class="rounded-lg border border-slate-200 p-4">
+      <div class="label">Store logo</div>
+      <div class="flex h-24 items-center justify-center rounded-md bg-[repeating-conic-gradient(#f1f5f9_0_25%,#fff_0_50%)] bg-[length:16px_16px]">
+        <?php if ($s['logo']): ?><img src="<?= e(upload_url($s['logo'])) ?>" alt="Store logo" class="max-h-20 max-w-full object-contain"><?php else: ?><span class="text-sm text-slate-400">No logo yet</span><?php endif; ?>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <label class="btn btn-sm btn-primary cursor-pointer" data-brand-upload data-url="<?= e(url('/shop/settings/logo')) ?>" data-vendor="<?= e($vendor) ?>" data-ratio="free">
+          <?= icon('upload', 'size-3.5') ?><?= $s['logo'] ? 'Change logo' : 'Upload logo' ?><input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp"></label>
+        <?php if ($s['logo']): ?><form method="post" action="<?= e(url('/shop/settings/logo/remove')) ?>" data-confirm-submit="Remove the logo?"><?= csrf_field() ?><button class="btn btn-sm btn-danger" type="submit">Remove</button></form><?php endif; ?>
+      </div>
+      <p class="help">Wide or square, any size - it is shown up to 48 px high in the header.</p>
+    </div>
+    <div class="rounded-lg border border-slate-200 p-4">
+      <div class="label">Browser tab icon (favicon)</div>
+      <div class="flex h-24 items-center justify-center gap-4 rounded-md bg-slate-100">
+        <?php if ($s['icon']): ?>
+          <span class="flex items-center gap-2 rounded-t-lg bg-white px-3 py-2 text-xs text-slate-700 shadow-sm"><img src="<?= e(upload_url($s['icon_small'])) ?>" alt="" class="size-4"><span class="max-w-32 truncate"><?= e($s['store_name']) ?></span></span>
+          <img src="<?= e(upload_url($s['icon'])) ?>" alt="App icon" class="size-14 rounded-xl bg-white shadow-sm">
+        <?php else: ?><span class="text-sm text-slate-400">Default icon</span><?php endif; ?>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <label class="btn btn-sm cursor-pointer" data-brand-upload data-url="<?= e(url('/shop/settings/icon')) ?>" data-vendor="<?= e($vendor) ?>" data-ratio="1:1">
+          <?= icon('upload', 'size-3.5') ?>Upload separate icon<input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp"></label>
+        <?php if ($s['icon_custom']): ?><form method="post" action="<?= e(url('/shop/settings/icon/remove')) ?>" data-confirm-submit="Remove the separate icon? The icon will be made from the logo again."><?= csrf_field() ?><button class="btn btn-sm btn-danger" type="submit">Use logo instead</button></form><?php endif; ?>
+      </div>
+      <p class="help"><?= $s['icon_custom'] ? 'A separate square icon is used.' : 'Made automatically from the logo. Upload a simple square image (e.g. just the symbol) if the logo is wide or has small text.' ?></p>
+    </div>
+  </div>
+</section>
+
 <form method="post" action="<?= e(url('/shop/settings')) ?>" class="card max-w-4xl p-5" data-ajax-form data-enter-nav novalidate>
   <?= csrf_field() ?>
   <div class="mb-3 hidden rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" data-form-error></div>
@@ -13,6 +48,7 @@
     <label class="flex items-center gap-2 text-sm font-semibold sm:col-span-2"><input type="checkbox" class="check" name="enabled" value="1" <?= $s['enabled'] ? 'checked' : '' ?>>Store is open to the public</label>
     <div><label class="label" for="store_name">Store name</label><input class="input" id="store_name" name="store_name" value="<?= e($s['store_name']) ?>" maxlength="120"><p class="field-error hidden" data-error-for="store_name"></p></div>
     <div><label class="label" for="slug">Web address</label><div class="flex items-center gap-1"><span class="text-sm text-slate-500">/store/</span><input class="input font-mono" id="slug" name="slug" value="<?= e($s['slug']) ?>" maxlength="60"></div><p class="help"><?= e($url) ?></p><p class="field-error hidden" data-error-for="slug"></p></div>
+    <label class="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" class="check" name="show_name" value="1" <?= ($s['show_name'] ?? 1) ? 'checked' : '' ?>>Show the store name and tagline next to the logo (untick if the logo already contains the name)</label>
     <div class="sm:col-span-2"><label class="label" for="tagline">Tagline</label><input class="input" id="tagline" name="tagline" value="<?= e($s['tagline']) ?>" maxlength="200"></div>
     <div><label class="label" for="contact_email">Support e-mail</label><input class="input" id="contact_email" name="contact_email" value="<?= e($s['contact_email']) ?>"></div>
     <div><label class="label" for="contact_phone">Support phone</label><input class="input" id="contact_phone" name="contact_phone" value="<?= e($s['contact_phone']) ?>"></div>

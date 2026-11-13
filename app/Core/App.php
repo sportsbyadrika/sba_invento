@@ -136,6 +136,8 @@ final class App
         $r->post('/shop/returns/{id:\d+}/process', [$H, 'returnProcess'], $auth);
         $r->get('/shop/settings', [$H, 'settings'], ['auth', 'admin']);
         $r->post('/shop/settings', [$H, 'saveSettings'], ['auth', 'admin']);
+        $r->post('/shop/settings/{kind:logo|icon}', [$H, 'brand'], ['auth', 'admin']);
+        $r->post('/shop/settings/{kind:logo|icon}/{op:remove}', [$H, 'brand'], ['auth', 'admin']);
         $r->get('/inventory/items/{id:\d+}/images', [$H, 'images'], $auth);
         $r->post('/inventory/items/{id:\d+}/images', [$H, 'uploadImages'], $auth);
         $r->post('/inventory/items/{id:\d+}/images/{img:\d+}/{op:main|delete|left|right}', [$H, 'imageOp'], $auth);

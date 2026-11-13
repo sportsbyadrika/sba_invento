@@ -257,7 +257,9 @@
   }
 
   /** Crop dialog. Resolves with a Blob (cropped JPEG), the original File ("use whole image"), or null (skipped). */
-  function cropImage(file, index, total) {
+  function cropImage(file, index, total, opts = {}) {
+    const startRatio = opts.ratio || '1:1';
+    const mime = opts.png ? 'image/png' : 'image/jpeg'; // PNG keeps logo transparency
     return new Promise((resolve) => {
       const url = URL.createObjectURL(file);
       const box = document.createElement('div');
@@ -272,7 +274,7 @@
         <div class="min-h-0 flex-1 bg-slate-100"><div class="h-[55vh]"><img alt="" class="block max-w-full" data-c-img></div></div>
         <div class="flex flex-wrap items-center gap-1.5 border-t border-slate-200 px-4 py-2.5">
           <span class="mr-1 text-xs font-semibold text-slate-500">Shape</span>
-          ${ratios.map(([k, , l], i) => `<button type="button" class="btn btn-sm ${i === 0 ? 'is-active' : ''}" data-ratio="${k}">${l}</button>`).join('')}
+          ${ratios.map(([k, , l]) => `<button type="button" class="btn btn-sm ${k === startRatio ? 'is-active' : ''}" data-ratio="${k}">${l}</button>`).join('')}
           <span class="mx-1 h-5 w-px bg-slate-200"></span>
           <button type="button" class="btn btn-sm" data-c="rotl" title="Rotate left">⟲</button>
           <button type="button" class="btn btn-sm" data-c="rotr" title="Rotate right">⟳</button>
@@ -294,7 +296,7 @@
       };
       document.addEventListener('keydown', onKey, true);
       img.onload = () => {
-        cropper = new window.Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.95, background: false, responsive: true, checkOrientation: true });
+        cropper = new window.Cropper(img, { aspectRatio: ratios.find((x) => x[0] === startRatio)[1], viewMode: 1, autoCropArea: opts.png ? 1 : 0.95, background: !!opts.png, responsive: true, checkOrientation: true });
       };
       img.src = url;
       box.addEventListener('click', (e) => {
@@ -310,8 +312,8 @@
         if (c === 'whole') { // keep the whole picture but shrink it (shared hosts often limit uploads to 2 MB)
           const sc = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
           const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
-          const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(img, 0, 0, cv.width, cv.height);
-          cv.toBlob((blob) => done(blob || file), 'image/jpeg', 0.92);
+          const g = cv.getContext('2d'); if (!opts.png) { g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); } g.drawImage(img, 0, 0, cv.width, cv.height);
+          cv.toBlob((blob) => done(blob || file), mime, 0.92);
           return;
         }
         if (!cropper) return;
@@ -321,12 +323,30 @@
         if (c === 'zout') cropper.zoom(-0.1);
         if (c === 'reset') cropper.reset();
         if (c === 'crop') {
-          const canvas = cropper.getCroppedCanvas({ maxWidth: 2000, maxHeight: 2000, fillColor: '#fff', imageSmoothingQuality: 'high' });
-          canvas.toBlob((blob) => done(blob), 'image/jpeg', 0.92);
+          const canvas = cropper.getCroppedCanvas({ maxWidth: 2000, maxHeight: 2000, fillColor: opts.png ? 'transparent' : '#fff', imageSmoothingQuality: 'high' });
+          canvas.toBlob((blob) => done(blob), mime, 0.92);
         }
       });
     });
   }
+
+  /** Shop logo / browser-tab icon: choose -> crop -> upload -> preview */
+  $$('[data-brand-upload]').forEach((root) => {
+    const input = $('input[type=file]', root);
+    input.addEventListener('change', async () => {
+      const file = input.files[0]; input.value = '';
+      if (!file) return;
+      if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { toast('Choose a PNG, JPEG or WebP image.', 'error'); return; }
+      try { await loadCropper(root.dataset.vendor); } catch (err) { toast(err.message, 'error'); return; }
+      const out = await cropImage(file, 0, 1, { ratio: root.dataset.ratio || 'free', png: true });
+      if (!out) return;
+      const fd = new FormData(); fd.append('image', out, 'brand.png');
+      root.classList.add('opacity-60');
+      try { const res = await http(root.dataset.url, { method: 'POST', body: fd }); toast(res.message); setTimeout(() => location.reload(), 500); }
+      catch (err) { toast(err.message, 'error'); }
+      finally { root.classList.remove('opacity-60'); }
+    });
+  });
 
   function initImageManager(root, form, markDirty) {
     let images = JSON.parse($('[data-images]', root).textContent || '[]');

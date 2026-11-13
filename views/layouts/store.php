@@ -11,7 +11,13 @@ $q = (string) ($_GET['q'] ?? '');
   <meta name="base-url" content="<?= e(app_prefix()) ?>">
   <title><?= e(($title ?? '') !== $store['store_name'] ? ($title ?? '') . ' · ' : '') ?><?= e($store['store_name']) ?></title>
   <meta name="description" content="<?= e($store['tagline'] ?: 'Shop online at ' . $store['store_name']) ?>">
+  <?php if (!empty($store['icon_small'])): ?>
+  <link rel="icon" href="<?= e(upload_url($store['icon_small'])) ?>" type="image/png" sizes="32x32">
+  <link rel="icon" href="<?= e(upload_url($store['icon'])) ?>" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="<?= e(upload_url($store['icon'])) ?>">
+  <?php else: ?>
   <link rel="icon" href="<?= e(asset('img/favicon.svg')) ?>" type="image/svg+xml">
+  <?php endif; ?>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
@@ -21,8 +27,14 @@ $q = (string) ($_GET['q'] ?? '');
 <header class="sticky top-0 z-40 border-b border-slate-200 bg-white">
   <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
     <a href="<?= e($s()) ?>" class="flex shrink-0 items-center gap-2">
-      <span class="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-600 to-teal-500 text-white"><?= icon('store', 'size-5') ?></span>
+      <?php if (!empty($store['logo'])): ?>
+        <img src="<?= e(upload_url($store['logo'])) ?>" alt="<?= e($store['store_name']) ?>" class="h-10 w-auto max-w-44 object-contain sm:h-12 sm:max-w-56">
+      <?php else: ?>
+        <span class="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-600 to-teal-500 text-white"><?= icon('store', 'size-5') ?></span>
+      <?php endif; ?>
+      <?php if (empty($store['logo']) || ($store['show_name'] ?? 1)): ?>
       <span class="hidden leading-tight sm:block"><span class="block text-base font-extrabold text-slate-900"><?= e($store['store_name']) ?></span><?php if ($store['tagline']): ?><span class="block max-w-56 truncate text-[11px] text-slate-500"><?= e($store['tagline']) ?></span><?php endif; ?></span>
+      <?php endif; ?>
     </a>
     <form action="<?= e($s()) ?>" method="get" class="relative mx-auto flex max-w-xl flex-1" role="search">
       <input type="search" name="q" value="<?= e($q) ?>" class="input rounded-r-none py-2 pl-9" placeholder="Search products, brands…" aria-label="Search products">

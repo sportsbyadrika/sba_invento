@@ -50,6 +50,7 @@ final class Shop
             $s = ['company_id' => $cid, 'enabled' => 0, 'slug' => strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $c['code'] ?? 'store')), 'store_name' => $c['name'] ?? 'Store',
                 'tagline' => null, 'contact_email' => $c['email'] ?? null, 'contact_phone' => $c['phone'] ?? null, 'delivery_fee' => 0, 'free_delivery_min' => null,
                 'cod_enabled' => 1, 'cod_max' => null, 'cod_fee' => 0, 'return_days' => 7, 'low_stock_badge' => 5,
+                'logo' => null, 'icon' => null, 'icon_small' => null, 'icon_custom' => 0, 'show_name' => 1,
                 'terms' => null, 'privacy' => null, 'returns_policy' => null, 'shipping_policy' => null];
         }
         return $s;
